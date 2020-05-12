@@ -1,0 +1,30 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "index.py",
+            "use": "@now/python",
+            "config": {
+                "maxLambdaSize": "15mb"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/.*",
+            "dest": "/",
+            "headers": {
+                "cache-control": "s-maxage=604800",
+                "Access-Control-Allow-Origin": "*"
+            }
+        }
+    ],
+    "env": {
+        "DEBUG": "False",
+        "GOOGLE_PROJECT_ID": "@google_project_id",
+        "GOOGLE_PRIVATE_KEY": "@google_private_key",
+        "GOOGLE_PRIVATE_KEY_ID": "@google_private_key_id",
+        "GOOGLE_CLIENT_EMAIL": "@google_client_email",
+        "GOOGLE_CLIENT_ID": "@google_client_id"
+    }
+}
