@@ -44,6 +44,26 @@ async def update_existing(request: Request):
     return JSONResponse({"status": True, "data": result.data})
 
 
+async def read_last(request: Request):
+    data = await request.json()
+    link = data.get("link")
+    sheet = data.get("sheet")
+    result: service.Result = await service.read_last_row(link, sheet)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
+async def add_new(request: Request):
+    link = data.get("link")
+    sheet = data.get("sheet")
+    update_data = data.get("data")
+    result: service.Result = await service.add_to_sheet(link, sheet, update_data)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
 middlewares = [
     Middleware(
         CORSMiddleware,
@@ -57,7 +77,9 @@ middlewares = [
 routes = [
     Route("/", home),
     Route("/read-single", read_row, methods=["POST"]),
-    Route("/update", update_existing, methods=["POST"])
+    Route("/update", update_existing, methods=["POST"]),
+    Route("/add", add_new, method=["POST"]),
+    Route("/read-last", read_last, method=["POST"])
     # Route("/secrets", secrets),
 ]
 

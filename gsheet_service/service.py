@@ -59,3 +59,21 @@ async def update_row(link, sheet, key, value, data) -> Result:
             return Result(error="Wrong `key` passed in `data`")
         else:
             return await read_row(link, sheet, key, value)
+
+
+async def read_last_row(link, sheet) -> Result:
+    if not link or not sheet:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    instance.load_file(link, sheet)
+    result = instance.read_last_row()
+    return Result(data=result)
+
+
+async def add_to_sheet(link, sheet, value):
+    if not link or not sheet:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    instance.load_file(link, sheet)
+    key, value = instance.update_records(value)
+    return await read_row(link, sheet, None, key, value[key])

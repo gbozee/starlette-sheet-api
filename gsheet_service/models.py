@@ -103,12 +103,21 @@ class GoogleSheetInterface:
         return {x[0]: x[1] for x in zip(column_values, results)}
 
     def update_records(self, data: typing.List[typing.Any]):
+        column_indices = self.get_indexes()
         index = self.get_row_to_write()
-        ranges = f"A{index}:E{index}"
-        cell_list = self.sheet.range(ranges)
-        for i, cell in enumerate(cell_list):
-            cell.value = data[i]
-        self.sheet.update_cells(cell_list)
+        keys = list(column_indices.keys())
+        obj = {}
+        for i, v in enumerate(data):
+            column = keys[i]
+            self.sheet.update_cell(index, i + 1, str(v))
+            obj[column] = v
+        return keys[0], obj
+
+    def read_last_row(self):
+        all_records = self.sheet.get_all_records()
+        if len(all_records) > 0:
+            return all_records[-1]
+        return {}
 
     def get_row_to_write(self):
         all_values = self.sheet.get_all_values()
@@ -122,6 +131,11 @@ class GoogleSheetInterface:
             return (row_index, key_index)
         raise ValueError("Missing Row Index")
 
+    def get_indexes(self):
+        all_values = self.sheet.get_all_values()
+        keys = all_values[0]
+        return {x: get_key_index(all_values, x) for x in keys}
+
     def get_row_cell_ids(self, key, value):
         all_values = self.sheet.get_all_values()
         keys = all_values[0]
@@ -132,9 +146,6 @@ class GoogleSheetInterface:
         cell_ids_dict = self.get_row_cell_ids(key, value)
         if check:
             valid = all([p in cell_ids_dict.keys() for p in data.keys()])
-            import pdb
-
-            pdb.set_trace()
             if not valid:
                 raise KeyError("Invalid params passed")
         for x, y in data.items():
