@@ -152,6 +152,12 @@ class GoogleSheetInterface:
             coordinate = cell_ids_dict[x]
             self.sheet.update_cell(*coordinate, y)
 
+    def fetch_groups(self, segments):
+        results = [
+            (self.sheet.get(x["cell_range"]), x.get("heading")) for x in segments
+        ]
+        return [as_dict(s[0], heading=s[1]) for s in results]
+
 
 def get_key_index(all_values, key):
     return all_values[0].index(key) + 1
@@ -163,3 +169,18 @@ def get_row_index(all_values, value):
     if found_item:
         row_index = found_item[0][0] + 1
     return row_index
+
+
+def as_dict(arr, heading=None):
+    # keys = arr[0]
+    keys = heading or arr[0]
+    values = arr[1:]
+    if heading:
+        values = arr
+    results = []
+    for k in values:
+        item = {}
+        for i, j in enumerate(keys):
+            item[j] = k[i]
+        results.append(item)
+    return results

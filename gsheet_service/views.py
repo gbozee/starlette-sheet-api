@@ -13,6 +13,17 @@ def home(request: Request):
     return JSONResponse({"hello": "world"})
 
 
+async def fetch_groups(request: Request):
+    data = await request.json()
+    link = data.get("link")
+    sheet = data.get("sheet")
+    segments = data.get("segments") or []
+    result: service.Result = await service.fetch_groups(link, sheet, segments)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
 async def read_row(request: Request):
     data = await request.json()
     link = data.get("link")
@@ -55,6 +66,7 @@ async def read_last(request: Request):
 
 
 async def add_new(request: Request):
+    data = await request.json()
     link = data.get("link")
     sheet = data.get("sheet")
     update_data = data.get("data")
@@ -78,8 +90,9 @@ routes = [
     Route("/", home),
     Route("/read-single", read_row, methods=["POST"]),
     Route("/update", update_existing, methods=["POST"]),
-    Route("/add", add_new, method=["POST"]),
-    Route("/read-last", read_last, method=["POST"])
+    Route("/add", add_new, methods=["POST"]),
+    Route("/read-last", read_last, methods=["POST"]),
+    Route("/fetch-groups", fetch_groups, methods=["POST"])
     # Route("/secrets", secrets),
 ]
 
