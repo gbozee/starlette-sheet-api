@@ -48,10 +48,10 @@ async def read_sheetnames(link) -> Result:
     if not link:
         return Result(error="Missing `link` or `sheet` value")
     instance = models.GoogleSheetInterface(**config)
-    print(instance)
     result = instance.get_sheet_names(link)
+    title = instance.get_spreadsheet_title(link)
     print(result)
-    return Result(data=result)
+    return Result(data=dict(title=title, sheet_names=result))
 
 async def update_row(link, sheet, key, value, data) -> Result:
     if not link or not sheet:
