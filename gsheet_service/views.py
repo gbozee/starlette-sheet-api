@@ -35,6 +35,14 @@ async def read_row(request: Request):
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
 
+async def read_sheetnames(request: Request):
+    data = await request.json()
+    link = data.get("link")
+    result: service.Result = await service.read_sheetnames(link)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
 
 # async def secrets(request: Request):
 #     return JSONResponse(service.config)
@@ -89,6 +97,7 @@ middlewares = [
 routes = [
     Route("/", home),
     Route("/read-single", read_row, methods=["POST"]),
+    Route("/read-sheetnames", read_sheetnames, methods=["POST"]),
     Route("/update", update_existing, methods=["POST"]),
     Route("/add", add_new, methods=["POST"]),
     Route("/read-last", read_last, methods=["POST"]),

@@ -79,6 +79,10 @@ class GoogleSheetInterface:
 
     def sheet_names(self):
         return [x.title for x in self.file.worksheets()]
+    
+    def get_sheet_names(self, url: str):
+        self.file = self.gc.open_by_url(url)
+        return [x.title for x in self.file.worksheets()]
 
     def get_sheet_by_name(self, name) -> g_models.Worksheet:
         result = [
