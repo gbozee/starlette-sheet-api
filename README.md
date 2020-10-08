@@ -68,6 +68,8 @@ The result is in the form
   "data": {
     "page_size": 20,
     "page": 2,
+    "next_page": 3,
+    "prev_page": 1
     "total_row_count": 2548,
     "row_range": {
       "first": 128,
