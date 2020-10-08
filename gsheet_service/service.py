@@ -39,7 +39,6 @@ async def read_row(link, sheet, page, page_size, key, value) -> Result:
     total_row_count = instance.get_row_count()
     row_range = models.get_row_range(total_row_count, page_size, page)
     result = models.paginate_response(full_result, page_size)[page-1]
-    next_page, prev_page = models.decide_next_prev_page(page, page_size)
 
     if value:
         if not key: 
@@ -47,7 +46,7 @@ async def read_row(link, sheet, page, page_size, key, value) -> Result:
         found = [x for x in result if x[key] == value]
         if found:
             return Result(data=found[0])
-    return Result(data=dict(page_size=page_size, page=page, next_page=next_page, prev_page=prev_page,total_row_count=total_row_count, row_range=row_range, sheet_names=result))
+    return Result(data=dict(page_size=page_size, page=page, total_row_count=total_row_count, row_range=row_range, sheet_names=result))
 
 async def read_sheetnames(link) -> Result:
     if not link:

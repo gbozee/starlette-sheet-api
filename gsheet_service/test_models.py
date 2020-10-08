@@ -1,5 +1,6 @@
+import sys
+sys.path.append('path')
 import unittest
-from unittest import result
 import models
 
 test_response = [3,5,6,74,3,5,7,3,2,2,5,79,6,5,4,4,3,2,5,7,8,9,7,6,5]
