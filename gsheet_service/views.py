@@ -84,6 +84,20 @@ async def add_new(request: Request):
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
 
+async def read_new_row(request: Request):
+    data = await request.json()
+    link = data.get("link")
+    primary_key = data.get("key")
+    value = data.get("value")
+    sheet = data.get("sheet")
+    page_size = data.get("page_size") or 10
+    page = data.get("page") or 1
+    result: service.Result = await service.read_new_row(link, sheet, page_size=page_size, page=page,  key=primary_key, value=value)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
 
 middlewares = [
     Middleware(
@@ -98,6 +112,7 @@ middlewares = [
 routes = [
     Route("/", home),
     Route("/read-single", read_row, methods=["POST"]),
+    Route("/read-new-single", read_new_row, methods=["POST"]),
     Route("/read-sheetnames", read_sheetnames, methods=["POST"]),
     Route("/update", update_existing, methods=["POST"]),
     Route("/add", add_new, methods=["POST"]),
