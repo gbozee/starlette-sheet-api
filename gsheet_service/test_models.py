@@ -5,8 +5,6 @@ import models
 test_response = [3,5,6,74,3,5,7,3,2,2,5,79,6,5,4,4,3,2,5,7,8,9,7,6,5]
 page_size = 3
 
-
-print(list(range(1,20)))
 class TestModel(unittest.TestCase):
 
     def test_paginate_response_pagenum(self):

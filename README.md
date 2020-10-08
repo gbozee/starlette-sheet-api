@@ -51,3 +51,28 @@ The result is in the form
     ]
   }
 }`
+
+`POST request to BASE_URL/read-single`
+with the body in the form of 
+`{
+	"link": "https://docs.google.com/spreadsheets/d/1m_1dKUJjDeTPctDMWA3Iuxx29DHj4gLDVXB0yHOygUM/edit#gid=1515920062",
+	"sheet": "Mathematics Mastersheet",
+	"page": 2,
+	"page_size": 20
+}
+`
+
+The result is in the form 
+`{
+  "status": true,
+  "data": {
+    "page_size": 20,
+    "page": 2,
+    "total_row_count": 2548,
+    "row_range": {
+      "first": 128,
+      "last": 254
+    },
+    "sheet_names": []
+  }
+    `
