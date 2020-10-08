@@ -30,7 +30,9 @@ async def read_row(request: Request):
     primary_key = data.get("key")
     value = data.get("value")
     sheet = data.get("sheet")
-    result: service.Result = await service.read_row(link, sheet, primary_key, value)
+    page_size = data.get("page_size") or 10
+    page = data.get("page") or 1
+    result: service.Result = await service.read_row(link, sheet, page_size=page_size, page=page,  key=primary_key, value=value)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})

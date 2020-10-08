@@ -44,8 +44,7 @@ def create_credentials_from_file(client_secret, additional_scopes=None):
 def create_credentials(additional_scopes=None, **kwargs):
     scope = (additional_scopes or []) + DEFAULT_SCOPES
     credential_dict = build_credential_json(**kwargs)
-    logging.info(credential_dict)
-    print(credential_dict)
+    #logging.info(credential_dict)
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(
         credential_dict, scope
     )
@@ -103,6 +102,9 @@ class GoogleSheetInterface:
 
     def get_all_records(self):
         return self.sheet.get_all_records()
+    
+    def get_row_count(self):
+        return self.sheet.row_count
 
     async def bulk_save(
         self, column_id: int = None, http_client_function: typing.Callable = None
@@ -166,6 +168,7 @@ class GoogleSheetInterface:
             (self.sheet.get(x["cell_range"]), x.get("heading")) for x in segments
         ]
         return [as_dict(s[0], heading=s[1]) for s in results]
+    
 
 
 def get_key_index(all_values, key):
@@ -193,3 +196,24 @@ def as_dict(arr, heading=None):
             item[j] = k[i]
         results.append(item)
     return results
+
+def paginate_response(response, num_of_pages):
+    avg = len(response) / float(num_of_pages)
+    split_array = []
+    last = 0.0
+
+    while last < len(response):
+        split_array.append(response[int(last):int(last + avg)])
+        last += avg
+
+    return split_array
+
+def get_row_range(total_row_count, page_size, page):
+    rows_per_page = round(total_row_count/page_size)
+    row_list = (list(range(1 , total_row_count, rows_per_page)))
+    row_range = dict(first=None, last=total_row_count)
+    if page == page_size:
+        row_range = dict(first=row_list[page-1], last=total_row_count)
+    else:
+        row_range.update({"first": row_list[page-1], "last": row_list[page]-1})
+    return row_range
