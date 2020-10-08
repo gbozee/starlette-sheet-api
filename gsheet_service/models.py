@@ -217,3 +217,15 @@ def get_row_range(total_row_count, page_size, page):
     else:
         row_range.update({"first": row_list[page-1], "last": row_list[page]-1})
     return row_range
+
+def decide_next_prev_page(page, page_size):
+    if page == page_size:
+        next_page = "none"
+    else:
+        next_page = page + 1
+    
+    if page == 1:
+        prev_page = "none"
+    else:
+        prev_page = page -1
+    return next_page, prev_page
