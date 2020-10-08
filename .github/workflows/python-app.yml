@@ -34,4 +34,4 @@ jobs:
     - name: Test with unittest
       run: |
         cd gsheet_service
-        python3 test_model.py
+        python3 test_models.py
