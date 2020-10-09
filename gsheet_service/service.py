@@ -100,12 +100,14 @@ async def read_new_row(link, sheet, page, page_size, key, value) -> Result:
     instance = models.GoogleSheetInterface(**config)
     instance.load_file(link, sheet)
     full_result = instance.get_all_records()
-    result = models.paginate_response(full_result, page_size)[page-1]
-    row_range = models.get_row_range(result, instance)
+    total_row_count = len(full_result)
+    result_arr = models.paginate_response(full_result, page_size)
+    result = result_arr[page-1]
+    row_range = models.get_row_range(full_result, result_arr, page)
     if value:
         if not key: 
             return Result(error="Missing `key` field to read a single record")
         found = [x for x in result if x[key] == value]
         if found:
             return Result(data=found[0])
-    return Result(data=dict(page_size=page_size, page=page,total_row_count=row_range['last'], row_range=row_range, sheet_names=result))
+    return Result(data=dict(page_size=page_size, page=page,total_row_count=total_row_count, row_range=row_range, sheet_names=result))

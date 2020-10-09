@@ -104,7 +104,7 @@ class GoogleSheetInterface:
         return self.sheet.get_all_records()
     
     def get_row_count(self):
-        return len(self.sheet.get_all_values())
+        return self.sheet.row_count
 
     def find_cell(self, cell):
         return self.sheet.find(cell)
@@ -208,10 +208,9 @@ def paginate_response(response, num_of_pages):
     while last < len(response):
         split_array.append(response[int(last):int(last + avg)])
         last += avg
-
     return split_array
 
-def get_row_range(result, instance):
+def get_row_range_from_sheet(result, instance):
     first_key = (list(result[0].keys()))[0]
     last_key = (list(result[0].keys()))[0]
     first_question_id = result[0][first_key]
@@ -219,8 +218,15 @@ def get_row_range(result, instance):
     first = instance.find_cell(first_question_id).row
     last = instance.find_cell(last_question_id).row
     row_range = dict(first=first, last=last)
-
     return row_range
+
+def get_row_range(combined_arr, arr, page):
+    sub_array = arr[page-1]
+    first = combined_arr.index(sub_array[0]) + 1
+    last = combined_arr.index(sub_array[-1]) + 1
+    return dict(first=first, last=last)
+    
+    
 
 
 
