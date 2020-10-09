@@ -16,10 +16,5 @@ class TestModel(unittest.TestCase):
         result = models.paginate_response(test_response, page_size)
         self.assertTrue(set(test_response).issuperset(set(result[0])))
 
-    # def test_get_row_range(self):
-    #     result = models.get_row_range(1000, 5, 1)
-    #     expected_range = {"first": 2, "last": 199}
-    #     self.assertEqual(result, expected_range)
-
 if __name__ == '__main__':
     unittest.main()

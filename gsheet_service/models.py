@@ -211,5 +211,16 @@ def paginate_response(response, num_of_pages):
 
     return split_array
 
+def get_row_range(result, instance):
+    first_key = (list(result[0].keys()))[0]
+    last_key = (list(result[0].keys()))[0]
+    first_question_id = result[0][first_key]
+    last_question_id = result[-1][last_key]
+    first = instance.find_cell(first_question_id).row
+    last = instance.find_cell(last_question_id).row
+    row_range = dict(first=first, last=last)
+
+    return row_range
+
 
 
