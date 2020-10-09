@@ -104,7 +104,10 @@ class GoogleSheetInterface:
         return self.sheet.get_all_records()
     
     def get_row_count(self):
-        return self.sheet.row_count
+        return len(self.sheet.get_all_values())
+
+    def find_cell(self, cell):
+        return self.sheet.find(cell)
 
     async def bulk_save(
         self, column_id: int = None, http_client_function: typing.Callable = None
@@ -208,12 +211,5 @@ def paginate_response(response, num_of_pages):
 
     return split_array
 
-def get_row_range(total_row_count, page_size, page):
-    rows_per_page = round(total_row_count/page_size)
-    row_list = (list(range(1 , total_row_count, rows_per_page)))
-    row_range = dict(first=None, last=total_row_count)
-    if page == page_size:
-        row_range = dict(first=row_list[page-1], last=total_row_count)
-    else:
-        row_range.update({"first": row_list[page-1], "last": row_list[page]-1})
-    return row_range
+
+
