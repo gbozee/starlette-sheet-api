@@ -110,4 +110,4 @@ async def read_new_row(link, sheet, page, page_size, key, value) -> Result:
         found = [x for x in result if x[key] == value]
         if found:
             return Result(data=found[0])
-    return Result(data=dict(page_size=page_size, page=page,total_row_count=total_row_count, row_range=row_range, sheet_names=result))
+    return Result(data=dict(page_size=page_size, page=page,total_row_count=total_row_count, row_range=row_range, questions=result))
