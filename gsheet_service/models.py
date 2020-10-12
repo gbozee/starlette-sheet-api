@@ -200,8 +200,8 @@ def as_dict(arr, heading=None):
         results.append(item)
     return results
 
-def paginate_response(response, num_of_pages):
-    avg = len(response) / float(num_of_pages)
+def paginate_response(response, page_size):
+    avg = len(response) / float(page_size)
     split_array = []
     last = 0.0
 
@@ -210,22 +210,32 @@ def paginate_response(response, num_of_pages):
         last += avg
     return split_array
 
-def get_row_range_from_sheet(result, instance):
-    first_key = (list(result[0].keys()))[0]
-    last_key = (list(result[0].keys()))[0]
-    first_question_id = result[0][first_key]
-    last_question_id = result[-1][last_key]
-    first = instance.find_cell(first_question_id).row
-    last = instance.find_cell(last_question_id).row
-    row_range = dict(first=first, last=last)
-    return row_range
+# def get_row_range_from_sheet(result, instance):
+#     first_key = (list(result[0].keys()))[0]
+#     last_key = (list(result[0].keys()))[0]
+#     first_question_id = result[0][first_key]
+#     last_question_id = result[-1][last_key]
+#     first = instance.find_cell(first_question_id).row
+#     last = instance.find_cell(last_question_id).row
+#     row_range = dict(first=first, last=last)
+#     return row_range
 
-def get_row_range(combined_arr, arr, page):
-    sub_array = arr[page-1]
-    first = combined_arr.index(sub_array[0]) + 1
-    last = combined_arr.index(sub_array[-1]) + 1
-    return dict(first=first, last=last)
     
+def get_page(response, page_size, page):
+    split_response = paginate_response(response, page_size)
+    sub_array = split_response[page-1]
+    first = response.index(sub_array[0]) + 1
+    last = response.index(sub_array[-1]) + 1
+    result = {
+        'first_row': first,
+        'last_row':last,
+        'total_row_count': len(response),
+        'page':  page,
+        'page_size': page_size,
+        'questions':sub_array
+    }
+
+    return result
     
 
 
