@@ -44,32 +44,6 @@ async def read_row(link, sheet, key, value) -> Result:
     return Result(data=result)
 
 
-async def read_row_1(link, sheet, page, page_size, key, value) -> Result:
-    if not link or not sheet:
-        return Result(error="Missing `link` or `sheet` value")
-    instance = models.GoogleSheetInterface(**config)
-    instance.load_file(link, sheet)
-    full_result = instance.get_all_records()
-    total_row_count = instance.get_row_count()
-    row_range = models.get_row_range(total_row_count, page_size, page)
-    result = models.paginate_response(full_result, page_size)[page-1]
-
-    if value:
-        if not key: 
-            return Result(error="Missing `key` field to read a single record")
-        found = [x for x in result if x[key] == value]
-        if found:
-            return Result(data=found[0])
-    return Result(data=dict(page_size=page_size, page=page,total_row_count=total_row_count, row_range=row_range, sheet_names=result))
-
-async def read_sheetnames(link) -> Result:
-    if not link:
-        return Result(error="Missing `link` or `sheet` value")
-    instance = models.GoogleSheetInterface(**config)
-    result = instance.get_sheet_names(link)
-    title = instance.get_spreadsheet_title(link)
-    return Result(data=dict(title=title, sheet_names=result))
-
 async def update_row(link, sheet, key, value, data) -> Result:
     if not link or not sheet:
         return Result(error="Missing `link` or `sheet` value")
@@ -110,4 +84,27 @@ async def fetch_groups(link,sheet,segments):
     instance = models.GoogleSheetInterface(**config)
     instance.load_file(link, sheet)
     result = instance.fetch_groups(segments)
+    return Result(data=result)
+
+async def read_sheetnames(link) -> Result:
+    if not link:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    result = instance.get_sheet_names(link)
+    title = instance.get_spreadsheet_title(link)
+    return Result(data=dict(title=title, sheet_names=result))
+
+async def read_new_row(link, sheet, page, page_size, key, value) -> Result:
+    if not link or not sheet:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    instance.load_file(link, sheet)
+    full_result = instance.get_all_records()
+    result = models.get_page(full_result, page_size=page_size, page=page)
+    if value:
+        if not key: 
+            return Result(error="Missing `key` field to read a single record")
+        found = [x for x in result if x[key] == value]
+        if found:
+            return Result(data=found[0])
     return Result(data=result)

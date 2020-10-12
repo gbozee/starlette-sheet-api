@@ -106,6 +106,9 @@ class GoogleSheetInterface:
     def get_row_count(self):
         return self.sheet.row_count
 
+    def find_cell(self, cell):
+        return self.sheet.find(cell)
+
     async def bulk_save(
         self, column_id: int = None, http_client_function: typing.Callable = None
     ) -> typing.Dict[str, typing.Any]:
@@ -197,23 +200,43 @@ def as_dict(arr, heading=None):
         results.append(item)
     return results
 
-def paginate_response(response, num_of_pages):
-    avg = len(response) / float(num_of_pages)
+def paginate_response(response, page_size):
+    avg = len(response) / float(page_size)
     split_array = []
     last = 0.0
 
     while last < len(response):
         split_array.append(response[int(last):int(last + avg)])
         last += avg
-
     return split_array
 
-def get_row_range(total_row_count, page_size, page):
-    rows_per_page = round(total_row_count/page_size)
-    row_list = (list(range(1 , total_row_count, rows_per_page)))
-    row_range = dict(first=None, last=total_row_count)
-    if page == page_size:
-        row_range = dict(first=row_list[page-1], last=total_row_count)
-    else:
-        row_range.update({"first": row_list[page-1], "last": row_list[page]-1})
-    return row_range
+# def get_row_range_from_sheet(result, instance):
+#     first_key = (list(result[0].keys()))[0]
+#     last_key = (list(result[0].keys()))[0]
+#     first_question_id = result[0][first_key]
+#     last_question_id = result[-1][last_key]
+#     first = instance.find_cell(first_question_id).row
+#     last = instance.find_cell(last_question_id).row
+#     row_range = dict(first=first, last=last)
+#     return row_range
+
+    
+def get_page(response, page_size, page):
+    split_response = paginate_response(response, page_size)
+    sub_array = split_response[page-1]
+    first = response.index(sub_array[0]) + 1
+    last = response.index(sub_array[-1]) + 1
+    result = {
+        'first_row': first,
+        'last_row':last,
+        'total_row_count': len(response),
+        'page':  page,
+        'page_size': page_size,
+        'questions':sub_array
+    }
+
+    return result
+    
+
+
+
