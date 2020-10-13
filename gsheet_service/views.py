@@ -84,6 +84,7 @@ async def add_new(request: Request):
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
 
+
 async def read_new_row(request: Request):
     data = await request.json()
     link = data.get("link")
@@ -92,11 +93,17 @@ async def read_new_row(request: Request):
     sheet = data.get("sheet")
     page_size = data.get("page_size") or 20
     page = data.get("page") or 1
-    result: service.Result = await service.read_new_row(link, sheet, page_size=page_size, page=page,  key=primary_key, value=value)
+    result: service.Result = await service.read_new_row(
+        link, sheet, page_size=page_size, page=page, key=primary_key, value=value
+    )
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
 
+
+async def oauth_callback(request: Request):
+    params = dict(request.query_params)
+    return JSONResponse(params)
 
 
 middlewares = [
@@ -111,6 +118,7 @@ middlewares = [
 
 routes = [
     Route("/", home),
+    Route("/oauth-callback", oauth_callback, methods=["GET"]),
     Route("/read-single", read_row, methods=["POST"]),
     Route("/read-new-single", read_new_row, methods=["POST"]),
     Route("/read-sheetnames", read_sheetnames, methods=["POST"]),
