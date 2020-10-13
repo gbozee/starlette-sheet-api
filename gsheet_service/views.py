@@ -5,12 +5,21 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.routing import Route
+from starlette.templating import Jinja2Templates
+from starlette.staticfiles import StaticFiles
+from starlette.routing import Route, Mount
 from gsheet_service import service
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__name__))
+
+templates = Jinja2Templates(
+    directory=os.path.join(BASE_DIR, "gsheet_service", "templates")
+)
 
 
 def home(request: Request):
-    return JSONResponse({"hello": "world"})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 async def fetch_groups(request: Request):
@@ -118,6 +127,11 @@ middlewares = [
 
 routes = [
     Route("/", home),
+    Mount(
+        "/static",
+        StaticFiles(directory=os.path.join(BASE_DIR, "gsheet_service", "static")),
+        name="static",
+    ),
     Route("/oauth-callback", oauth_callback, methods=["GET"]),
     Route("/read-single", read_row, methods=["POST"]),
     Route("/read-new-single", read_new_row, methods=["POST"]),
