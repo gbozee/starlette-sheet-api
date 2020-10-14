@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
 from starlette.routing import Route, Mount
-from gsheet_service import service
+from gsheet_service import service, oauth_views
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__name__))
@@ -139,7 +139,8 @@ routes = [
     Route("/update", update_existing, methods=["POST"]),
     Route("/add", add_new, methods=["POST"]),
     Route("/read-last", read_last, methods=["POST"]),
-    Route("/fetch-groups", fetch_groups, methods=["POST"])
+    Route("/fetch-groups", fetch_groups, methods=["POST"]),
+    Mount("/oauth", routes=oauth_views.routes)
     # Route("/secrets", secrets),
 ]
 
