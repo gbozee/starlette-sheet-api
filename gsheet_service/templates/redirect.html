@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Page</title>
+</head>
+
+<body>
+    This is the redirect page.
+    <script>
+        function closeChild() {
+            localStorage.setItem("ZOHO_REDIRECT_URL",window.location.href)
+            try {
+                window.close()
+            } catch (error) {
+                console.log(error)
+            }
+            try {
+                self.close()
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        closeChild()
+    </script>
+</body>
+
+</html>

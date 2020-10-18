@@ -8,8 +8,9 @@ from starlette.responses import JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
 from starlette.routing import Route, Mount
-from gsheet_service import service, oauth_views
+from gsheet_service import service, oauth_views, settings
 import os
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__name__))
 
@@ -18,8 +19,83 @@ templates = Jinja2Templates(
 )
 
 
-def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+def oauth_config():
+    link = settings.OAUTH_SPREADSHEET
+    sheet = settings.OAUTH_SHEET_NAME
+    redirect_uri = f"{settings.HOST_PROVIDER}/redirect"
+    return locals()
+
+
+async def home(request: Request):
+    result = await oauth_views.oauth_service.get_authorization_url(
+        "zoho", **oauth_config()
+    )
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "authorization_url": result.data["authorization_url"],},
+    )
+
+
+async def fetch_access_token(request: Request):
+    body = await request.json()
+    authorization_response = body.get("redirect_uri")
+    if not authorization_response:
+        return JSONResponse(
+            {"status": False, "msg": "No redirect_uri passed"}, status_code=400
+        )
+    result = await oauth_views.oauth_service.get_access_and_refresh_token(
+        "zoho", authorization_response=authorization_response, **oauth_config(),
+    )
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
+async def get_emails(request: Request):
+    body = await request.json()
+    refresh_token = body.get("refresh_token")
+    search_config = body.get("search_config")
+    if not refresh_token:
+        return JSONResponse(
+            {"status": False, "msg": "No refresh_token sent"}, status_code=400
+        )
+    if not search_config:
+        return JSONResponse(
+            {"status": False, "msg": "No search_config sent"}, status_code=400
+        )
+    result = await oauth_views.oauth_service.get_emails(
+        "zoho",
+        search_config=search_config,
+        refresh_token=refresh_token,
+        **oauth_config(),
+    )
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
+async def get_email_content(request: Request):
+    body = await request.json()
+    refresh_token = body.get("refresh_token")
+    email_data = body.get("email_data")
+    if not refresh_token:
+        return JSONResponse(
+            {"status": False, "msg": "No refresh_token sent"}, status_code=400
+        )
+    if not email_data:
+        return JSONResponse(
+            {"status": False, "msg": "No email_data content sent"}, status_code=400
+        )
+    result = await oauth_views.oauth_service.get_email_content(
+        "zoho", email_data, refresh_token=refresh_token, **oauth_config()
+    )
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
+def redirect_page(request: Request):
+    return templates.TemplateResponse("redirect.html", {"request": request})
 
 
 async def fetch_groups(request: Request):
@@ -127,6 +203,10 @@ middlewares = [
 
 routes = [
     Route("/", home),
+    Route("/redirect", redirect_page),
+    Route("/get-access-token", fetch_access_token, methods=["POST"]),
+    Route("/get-emails", get_emails, methods=["POST"]),
+    Route("/get-email-content", get_email_content, methods=["POST"]),
     Mount(
         "/static",
         StaticFiles(directory=os.path.join(BASE_DIR, "gsheet_service", "static")),

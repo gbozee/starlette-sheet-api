@@ -25,6 +25,9 @@
         "GOOGLE_PRIVATE_KEY": "@google_private_key",
         "GOOGLE_PRIVATE_KEY_ID": "@google_private_key_id",
         "GOOGLE_CLIENT_EMAIL": "@google_client_email",
-        "GOOGLE_CLIENT_ID": "@google_client_id"
+        "GOOGLE_CLIENT_ID": "@google_client_id",
+        "OAUTH_SPREADSHEET": "@oauth_spreadsheet",
+        "HOST_PROVIDER": "https://gsheet.now.sh",
+        "OAUTH_SHEET_NAME": "Mail Provider"
     }
 }
