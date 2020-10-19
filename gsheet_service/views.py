@@ -55,6 +55,7 @@ async def get_emails(request: Request):
     body = await request.json()
     refresh_token = body.get("refresh_token")
     search_config = body.get("search_config")
+    provider = request.path_params['provider']
     if not refresh_token:
         return JSONResponse(
             {"status": False, "msg": "No refresh_token sent"}, status_code=400
@@ -64,7 +65,7 @@ async def get_emails(request: Request):
             {"status": False, "msg": "No search_config sent"}, status_code=400
         )
     result = await oauth_views.oauth_service.get_emails(
-        "zoho",
+        provider,
         search_config=search_config,
         refresh_token=refresh_token,
         **oauth_config(),
@@ -78,6 +79,7 @@ async def get_email_content(request: Request):
     body = await request.json()
     refresh_token = body.get("refresh_token")
     email_data = body.get("email_data")
+    provider = request.path_params['provider']
     if not refresh_token:
         return JSONResponse(
             {"status": False, "msg": "No refresh_token sent"}, status_code=400
@@ -87,7 +89,7 @@ async def get_email_content(request: Request):
             {"status": False, "msg": "No email_data content sent"}, status_code=400
         )
     result = await oauth_views.oauth_service.get_email_content(
-        "zoho", email_data, refresh_token=refresh_token, **oauth_config()
+        provider, email_data, refresh_token=refresh_token, **oauth_config()
     )
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
@@ -205,8 +207,8 @@ routes = [
     Route("/", home),
     Route("/redirect", redirect_page),
     Route("/get-access-token", fetch_access_token, methods=["POST"]),
-    Route("/get-emails", get_emails, methods=["POST"]),
-    Route("/get-email-content", get_email_content, methods=["POST"]),
+    Route("/{provider}/get-emails", get_emails, methods=["POST"]),
+    Route("/{provider}/get-email-content", get_email_content, methods=["POST"]),
     Mount(
         "/static",
         StaticFiles(directory=os.path.join(BASE_DIR, "gsheet_service", "static")),

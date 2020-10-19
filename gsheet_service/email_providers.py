@@ -1,6 +1,9 @@
 import asyncio
 from requests_oauthlib import OAuth2Session
 import requests
+import json
+import jwt
+import base64
 
 
 class EmailProvider:
@@ -80,4 +83,71 @@ class ZohoProvider(EmailProvider):
 
 class GmailProvider(EmailProvider):
     provider = "gmail"
-    pass
+    base_url = "https://gmail.googleapis.com"
+    auth_header = "Bearer"
+
+    @property
+    def account_id(self):
+        decoded = jwt.decode(self.token["id_token"], verify=False)
+        return decoded["sub"]
+
+    def email_url(self, accountId):
+        return self.base_url + f"/gmail/v1/users/{accountId}/messages"
+
+    async def get_emails(self, search_config, **kwargs):
+        parsed_config = self.parse_search_config(search_config or {})
+        params = {"maxResults": 100, "q": parsed_config, "includeSpamTrash": "true"}
+        result = requests.get(
+            self.email_url(self.account_id), headers=self.headers(), params=params,
+        )
+        if result.status_code < 400:
+            return result.json()["messages"]
+        result.raise_for_status()
+
+    def parse_search_config(self, config):
+        result = ""
+        if "sender" in config:
+            #  OR from:GENS@gtbank.com
+            individual = " ".join([f"from:{x}" for x in config["sender"].split(",")])
+            result = result + "{" + individual + "}"
+        if "subject" in config:
+            individual = " ".join(
+                [f'subject:("{x}")' for x in config["subject"].split(",")]
+            )
+            if result:
+                result = f"{result} "
+            result = result + "{" + individual + "}"
+        if "from" in config:
+            result = f"{result} after:{config['from']}"
+        if "to" in config:
+            result = f"{result}::before:{config['to']}"
+        return result
+
+    async def get_email_content(self, id="", threadId="", **kwargs):
+        result = requests.get(
+            f"{self.email_url(self.account_id)}/{id}", headers=self.headers(),
+        )
+        if result.status_code < 400:
+            response = result.json()
+            raw = response
+            cleaned = self.clean_response(response)
+            return raw
+            # return {"raw": raw, "cleaned": json.dumps(cleaned)}
+        result.raise_for_status()
+
+    def clean_response(self, response):
+        payload = response["payload"]
+        headers = payload["headers"]
+        content = payload["parts"]
+        attributes = {x["name"]: x["value"] for x in headers}
+        body = {
+            x["mimeType"]: base64.urlsafe_b64decode(x["body"]["data"]) for x in content
+        }
+        return {
+            **body,
+            "subject": attributes.get("Subject"),
+            "date": attributes.get("Date"),
+            "from": attributes.get("From"),
+            "received": attributes.get("Received"),
+        }
+

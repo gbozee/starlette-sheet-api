@@ -91,16 +91,26 @@ def oauth_implementation(
 def resolve_authorization_url(
     oauth_library: OAuth2Session, provider_instance, **kwargs
 ):
+    additional_params = {}
     if "path" in kwargs:
         provider_instance["authorization_url_path"] = kwargs["path"]
     if "prompt" in kwargs:
-        provider_instance["prompt"] = kwargs["prompt"]
+        if provider_instance["client"] == "zoho":
+            provider_instance["prompt"] = kwargs["prompt"]
+    if "approval_prompt" in kwargs:
+        if provider_instance["client"] == "gmail":
+            provider_instance["approval_prompt"] = kwargs["approval_prompt"]
     if "access_type" in kwargs:
         provider_instance["access_type"] = kwargs["access_type"]
+    if provider_instance.get('approval_prompt'):
+        additional_params["approval_prompt"] = provider_instance["approval_prompt"]
+    if provider_instance.get('prompt'):
+        additional_params["prompt"] = provider_instance["prompt"]
+    if provider_instance.get('access_type'):
+        additional_params["access_type"] = provider_instance["access_type"]
     authorization_url, state = oauth_library.authorization_url(
         f"{provider_instance['base_url']}{provider_instance['authorization_url_path']}",
-        prompt=provider_instance.get("prompt"),
-        access_type=provider_instance.get("access_type"),
+        **additional_params,
     )
     return authorization_url
 
