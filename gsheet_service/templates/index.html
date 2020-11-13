@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+</head>
+
+<body>
+    This is the home page
+    <button id="zoho">Authenticate Zoho</button>
+    <a href="{{authorization_url}}">Authenticate Zoho</button>
+        <!-- <a href="https://accounts.zoho.com/oauth/v2/auth?scope=ZohoMail.accounts.READ,ZohoMail.partner.organization.READ,ZohoMail.organization.groups.READ,ZohoMail.messages.READ&client_id=1000.MZ4J94ZXAJB2997AD7X78D2L2AICFK&response_type=code&redirect_uri=https://ghseet.now.sh&access_type=offline">Authenticate Zoho</button> -->
+        <script>
+            async function getAccessToken(url) {
+                try {
+                    let response = await fetch("/get-access-token", {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application.json"
+                        },
+                        body: JSON.stringify({ redirect_uri: url })
+                    })
+                    let data = await response.json()
+                    if (data.status) {
+                        return data.data
+                    }
+                    throw data.msg
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+            let button = document.querySelector('button#zoho')
+            button.addEventListener('click', (event) => {
+                let authorization_url = "{{authorization_url|safe}}"
+                let strWindowFeatures = "location=yes,height=570,width=520,scrollbars=yes,status=yes";
+                let win = window.open(authorization_url, "_blank", strWindowFeatures);
+                console.log(win)
+                localStorage.clear()
+                const result = null;
+                const interval_id = setInterval(() => {
+                    console.log("Sleeping")
+                    const item = localStorage.getItem("ZOHO_REDIRECT_URL")
+                    if (item) {
+                        clearInterval(interval_id)
+                        getAccessToken(item).then(response => {
+                            console.log(response)
+                            localStorage.clear()
+                        }).catch(error => { console.log(error) })
+                    }
+                    console.log(item)
+                }, 2000);
+            })
+        </script>
+</body>
+
+</html>
