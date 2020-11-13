@@ -2,6 +2,7 @@ import typing
 from urllib.parse import quote_plus
 import logging
 import gspread
+import re
 from gspread import models as g_models, utils
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -172,6 +173,23 @@ class GoogleSheetInterface:
         ]
         return [as_dict(s[0], heading=s[1]) for s in results]
     
+    def get_referenced_cell_values(self, options):
+        all_column_names: list = [(column.lower()).strip() for column in self.sheet.row_values(1)]
+        complete_values = dict()
+        for column in options.get("columns"):
+            if (isinstance(column, str)):
+                unique_cells = get_cells(self.sheet.col_values(all_column_names.index(column.lower()) + 1))
+                column_value = self.sheet.batch_get(unique_cells)
+                expected_dict = get_cell_data(unique_cells,column_value)
+                complete_values[column] = expected_dict
+            else:
+                unique_cells = get_cells(self.sheet.col_values(column))
+                column_value = self.sheet.batch_get(unique_cells)
+                expected_dict = get_cell_data(unique_cells,column_value)
+                complete_values[column] = expected_dict
+
+        return complete_values
+    
 
 
 def get_key_index(all_values, key):
@@ -237,6 +255,19 @@ def get_page(response, page_size, page):
 
     return result
     
+def get_cells(column_data):
+    cleaned_data = ",".join(list(set(column_data)))
+    pattern = re.compile(r'[A-Z]\d+"')
+    cells = pattern.findall(cleaned_data)
+    cells.sort()
+    cells = [cell.replace('"', "") for cell in cells]
+    return cells
 
+def get_cell_data(unique_cells, cell_data):
+    cell_dictionary = dict()
+    for n in unique_cells:    
+        cell_dictionary[unique_cells[unique_cells.index(n)]] = cell_data[unique_cells.index(n)][0][0]
+        cell_dictionary[unique_cells[unique_cells.index(n)]] = cell_data[unique_cells.index(n)][0][0]
+    return cell_dictionary
 
 

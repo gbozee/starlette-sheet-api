@@ -97,6 +97,18 @@ async def read_new_row(request: Request):
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
 
+async def read_referenced_cell(request: Request):
+    data = await request.json()
+    link = data.get("link")
+    primary_key = data.get("key")
+    value = data.get("value")
+    sheet = data.get("sheet")
+    options = data.get("options")
+    result: service.Result = await service.read_referenced_cell(link, sheet, key=primary_key, options=options, value=value)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
 
 
 middlewares = [
@@ -113,6 +125,7 @@ routes = [
     Route("/", home),
     Route("/read-single", read_row, methods=["POST"]),
     Route("/read-new-single", read_new_row, methods=["POST"]),
+    Route("/read-referenced-cells", read_referenced_cell, methods=["POST"]),
     Route("/read-sheetnames", read_sheetnames, methods=["POST"]),
     Route("/update", update_existing, methods=["POST"]),
     Route("/add", add_new, methods=["POST"]),
