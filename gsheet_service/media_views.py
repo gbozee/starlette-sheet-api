@@ -18,7 +18,7 @@ async def get_image_url(request: Request):
     identifier = request.path_params["identifier"]
     public_id = request.path_params["public_id"]
     data = dict(request.query_params)
-    result = await media_service.get_cloudinary_url(identifer, public_id, **data)
+    result = await media_service.get_cloudinary_url(identifier, public_id, **data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
