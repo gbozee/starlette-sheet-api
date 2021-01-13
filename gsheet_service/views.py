@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 from starlette.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
 from starlette.routing import Route, Mount
-from gsheet_service import service, oauth_views, settings
+from gsheet_service import service, oauth_views, settings,media_views
 import os
 import json
 
@@ -249,7 +249,7 @@ routes = [
     Route("/add", add_new, methods=["POST"]),
     Route("/read-last", read_last, methods=["POST"]),
     Route("/fetch-groups", fetch_groups, methods=["POST"]),
-    Mount("/oauth", routes=oauth_views.routes)
+    Mount("/oauth", routes=oauth_views.routes),
     Mount("/media",routes=media_views.routes)
     # Route("/secrets", secrets),
 ]
