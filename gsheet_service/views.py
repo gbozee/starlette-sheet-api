@@ -250,6 +250,7 @@ routes = [
     Route("/read-last", read_last, methods=["POST"]),
     Route("/fetch-groups", fetch_groups, methods=["POST"]),
     Mount("/oauth", routes=oauth_views.routes)
+    Mount("/media",routes=media_views.routes)
     # Route("/secrets", secrets),
 ]
 
