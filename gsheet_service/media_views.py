@@ -4,15 +4,19 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from gsheet_service import media_service, settings
 
-
 async def upload_image(request: Request):
     identifier = request.path_params["identifier"]
-    data = await request.json()
+    content_type = request.headers['content-type']
+    if content_type == 'application/json':
+        data = await request.json()
+    else:
+        form_data = await request.form()
+        contents = await form_data["image"].read()
+        data = {"image": contents}
     result = await media_service.create_cloudinary_image(identifier, **data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
-
 
 async def get_image_url(request: Request):
     identifier = request.path_params["identifier"]
