@@ -20,6 +20,10 @@ async def test_get_cloudinary_image_when_not_exist(client: httpx.Client):
     assert response.status_code == 200 
     assert response.json == {
         'status':True,
-        'data':
+        'data':{
+            "service": None,
+            "resource_id": "mj82ekkke0gktkx9dhr0",
+            "kind": "image"
+            }
     }
 
