@@ -2,6 +2,7 @@ import re
 import typing
 import cloudinary
 from cloudinary import uploader as cloudinary_uploader
+from gsheet_service import settings
 
 
 class ResourceInstance:
