@@ -27,7 +27,9 @@
         "GOOGLE_CLIENT_EMAIL": "@google_client_email",
         "GOOGLE_CLIENT_ID": "@google_client_id",
         "OAUTH_SPREADSHEET": "@oauth_spreadsheet",
+        "MEDIA_SPREADSHEET": "@oauth_spreadsheet",
         "HOST_PROVIDER": "https://gsheet.now.sh",
-        "OAUTH_SHEET_NAME": "Mail Provider"
+        "OAUTH_SHEET_NAME": "Mail Provider",
+        "MEDIA_SHEET_NAME": "Media"
     }
 }
