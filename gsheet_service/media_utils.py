@@ -188,11 +188,14 @@ class MediaServiceAPI:
         return {"service": instance.kind, "resource_id": instance.public_id}
 
     @classmethod
-    async def delete_resource(cls, service=None, resource_id=None, **kwargs):
+    async def delete_resource(cls, kind, service=None, resource_id=None, **kwargs):
         config = kwargs.get("config")
         new_service = service
         if not new_service:
             new_service = config.get("client")
         # config = settings.IMAGE_SERVICES[service]
-        instance = get_instance(new_service, image=resource_id, **config, **kwargs)
+        if(kind == "image"):
+            instance = get_instance(new_service, image=resource_id, **config, **kwargs)
+        elif(kind == 'video'):
+            instance = get_instance(new_service, kind=kind, video=resource_id, **config, **kwargs)
         instance.delete()
