@@ -70,17 +70,16 @@ async def get_video_url(request: Request):
     return JSONResponse({"status": True, "data": result.data})
 
 
-async def delete_resource(request: Request):
+async def delete_image(request: Request):
     identifier = request.path_params["identifier"]
     data = await request.json()
     public_id = data.pop("public_id", None)
-    result = await media_service.delete_cloudinary_resource(
+    result = await media_service.delete_cloudinary_image(
         identifier, public_id, **data
     )
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
-
 
 routes = [
     Route("/{identifier}/upload", upload_image, methods=["POST"]),
@@ -89,6 +88,6 @@ routes = [
     Route("/{identifier}/get_url", get_image_url, methods=["POST"]),
     Route("/{identifier}/get_audio_url", get_audio_url, methods=["POST"]),
     Route("/{identifier}/get_video_url", get_video_url, methods=["POST"]),
-    Route("/{identifier}/delete", delete_resource, methods=["POST"]),
+    Route("/{identifier}/delete", delete_image, methods=["POST"]),
 ]
 

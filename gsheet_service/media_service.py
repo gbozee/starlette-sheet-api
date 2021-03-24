@@ -140,14 +140,14 @@ async def get_audio_url(identifier, public_id, **data) -> Result:
     )
 
 
-async def delete_cloudinary_resource(identifier, public_id, **data) -> Result:
+async def delete_cloudinary_image(identifier, public_id, **data) -> Result:
     link = data.pop("link", None) or settings.MEDIA_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.MEDIA_SHEET_NAME
     kind = data.pop("kind", None) or "image"
     config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
     if public_id and config:
         await media_utils.MediaServiceAPI.delete_resource(
-         kind=kind, resource_id=public_id, config=config, **data
+          resource_id=public_id, config=config, **data
         )
         return Result(data={"msg": "Successful"})
     return Result(
