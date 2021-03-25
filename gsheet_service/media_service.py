@@ -100,8 +100,6 @@ async def create_cloudinary_audio(identifier, **data) -> Result:
 async def get_cloudinary_url(identifier, kind, public_id, **data) -> Result:
     link = data.pop("link", None) or settings.MEDIA_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.MEDIA_SHEET_NAME
-    print(kind)
-    # kind = data.pop("kind", None) or "image"
     config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
     if public_id and config:
         instance = media_utils.MediaServiceAPI.get_instance(
