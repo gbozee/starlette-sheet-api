@@ -130,3 +130,4 @@ dmypy.json
 startup.sh
 .now
 .vscode
+.vercel
