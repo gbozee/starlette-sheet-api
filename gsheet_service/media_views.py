@@ -10,27 +10,27 @@ async def upload_resource(request: Request):
     if content_type == 'application/json':
         data = await request.json()
         kind = data.pop("kind", None)
-        if kind == 'image':
-            result = await media_service.create_cloudinary_image(identifier, **data)
+        if kind == 'audio':
+            result = await media_service.create_cloudinary_audio(identifier, **data)
         elif kind == 'video':
             result = await media_service.create_cloudinary_video(identifier, **data)
         else:
-            result = await media_service.create_cloudinary_audio(identifier, **data)
+            result = await media_service.create_cloudinary_image(identifier, **data)
     else:
         form_data = await request.form()
         kind = list(form_data.keys())[0]
-        if kind == 'image':
-            contents = await form_data["image"].read()
-            data = {"image": contents}
-            result = await media_service.create_cloudinary_image(identifier, **data)
+        if kind == 'audio':
+            contents = await form_data["audio"].read()
+            data = {"audio": contents}
+            result = await media_service.create_cloudinary_audio(identifier, **data)
         elif kind == 'video':
             contents = await form_data["video"].read()
             data = {"video": contents}
             result = await media_service.create_cloudinary_video(identifier, **data)
         else:
-            contents = await form_data["audio"].read()
-            data = {"audio": contents}
-            result = await media_service.create_cloudinary_audio(identifier, **data)
+            contents = await form_data["image"].read()
+            data = {"image": contents}
+            result = await media_service.create_cloudinary_image(identifier, **data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
