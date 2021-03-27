@@ -38,7 +38,7 @@ async def upload_resource(request: Request):
 async def get_cloudinary_url(request: Request):
     identifier = request.path_params["identifier"]
     data = await request.json()
-    kind = data.pop("kind", None)
+    kind = data.pop("kind", "image")
     public_id = data.pop("public_id", None)
     result = await media_service.get_cloudinary_url(identifier, kind, public_id, **data)
     if result.error:
