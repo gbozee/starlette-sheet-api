@@ -1,44 +1,7 @@
 import typing
 import json
 from gsheet_service import settings, models, media_utils
-
-
-class Result:
-    def __init__(
-        self,
-        error: str = None,
-        data: dict = None,
-        task: typing.List[typing.Any] = None,
-    ):
-        self.error = error
-        self.data = data
-        self.task = task
-
-
-config = dict(
-    project_id=settings.GOOGLE_PROJECT_ID,
-    private_key=settings.GOOGLE_PRIVATE_KEY,
-    private_key_id=settings.GOOGLE_PRIVATE_KEY_ID,
-    client_email=settings.GOOGLE_CLIENT_EMAIL,
-    client_id=settings.GOOGLE_CLIENT_ID,
-)
-
-if not settings.DEBUG:
-    config.update(private_key=json.loads(f'{config["private_key"]}'))
-else:
-    config.update(private_key=json.loads(f'"{config["private_key"]}"'))
-
-
-async def get_provider_sheet(link=None, sheet=None, provider=None, key="id", **kwargs):
-    updated_config = {**config, **kwargs}
-    instance = models.GoogleSheetInterface(**updated_config)
-    instance.load_file(link, sheet)
-    result = instance.get_all_records()
-    if key:
-        found = [x for x in result if x[key].lower() == provider.lower()]
-        if found:
-            return found[0]
-    return None
+from gsheet_service.types import Result, config, get_provider_sheet
 
 
 async def get_credentials(_id, link=None, sheet=None, credentials=None, **kwargs):
@@ -66,6 +29,7 @@ async def create_cloudinary_image(identifier, **data) -> Result:
         error="Error creating the image in cloudinary, missing image or invalid config"
     )
 
+
 async def create_cloudinary_video(identifier, **data) -> Result:
     link = data.pop("link", None) or settings.MEDIA_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.MEDIA_SHEET_NAME
@@ -80,6 +44,7 @@ async def create_cloudinary_video(identifier, **data) -> Result:
     return Result(
         error="Error creating the video in cloudinary, missing video or invalid config"
     )
+
 
 async def create_cloudinary_audio(identifier, **data) -> Result:
     link = data.pop("link", None) or settings.MEDIA_SPREADSHEET
@@ -110,6 +75,7 @@ async def get_cloudinary_url(identifier, kind, public_id, **data) -> Result:
         error="Error getting the image in cloudinary, missing public_id or invalid config"
     )
 
+
 async def delete_cloudinary_resource(identifier, public_id, **data) -> Result:
     link = data.pop("link", None) or settings.MEDIA_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.MEDIA_SHEET_NAME
@@ -124,4 +90,3 @@ async def delete_cloudinary_resource(identifier, public_id, **data) -> Result:
     return Result(
         error="Error deleting the resource in cloudinary, missing public_id or invalid config"
     )
-
