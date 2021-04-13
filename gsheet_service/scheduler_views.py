@@ -47,7 +47,6 @@ async def list_jobs(request: Request):
     result = await scheduler_service.get_all_jobs(identifier, **data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
-    import pdb; pdb.set_trace()
     return JSONResponse({"status": True, "data": result.data})
 
 

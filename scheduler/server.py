@@ -35,13 +35,16 @@ def process_api_job(url, method, params=None, **kwargs):
         func_params["params"] = params
     logging.info(params)
     try:
-        logging.info({**params,'method':method})
+        logging.info({**params, "method": method})
     except TypeError:
-        params = json.loads(params)
-        if method.upper() == 'POST':
-            func_params['json'] = params
+        if params:
+            params = json.loads(params)
         else:
-            func_params['params'] = params
+            params = {}
+        if method.upper() == "POST":
+            func_params["json"] = params
+        else:
+            func_params["params"] = params
     try:
         result = func(url, **func_params)
         if result.status_code >= 400:
@@ -82,6 +85,37 @@ class SchedulerService(rpyc.Service):
 
     def exposed_get_jobs(self, jobstore=None):
         return scheduler.get_jobs(jobstore)
+
+    def exposed_get_jobs_ids(self, jobstore=None):
+        result = scheduler.get_jobs(jobstore)
+        return json.dumps([x.id for x in result])
+
+    def exposed_parse_jobs(self, jobstore=None):
+        result = scheduler.get_jobs(jobstore)
+        return json.dumps([self.parse_job_info(x) for x in result])
+
+    def parse_job_info(self, job):
+        next_run_time = job.next_run_time
+        return {
+            "kwargs": job.kwargs,
+            "args": list(job.args),
+            "id": job.id,
+            "next_run_time": next_run_time.isoformat() if next_run_time else "",
+            "pending": job.pending,
+            "max_instances": job.max_instances,
+            "coalesce": job.coalesce,
+            "trigger": self.parse_trigger_info(job.trigger),
+        }
+
+    def parse_trigger_info(self, trigger):
+        end_date = trigger.end_date
+        start_date = trigger.start_date
+        return {
+            "start_date": start_date.isoformat() if start_date else "",
+            "end_date": end_date.isoformat() if end_date else "",
+            "interval": str(trigger.interval),
+            "timezone": str(trigger.timezone),
+        }
 
 
 if __name__ == "__main__":

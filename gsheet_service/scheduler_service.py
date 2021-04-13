@@ -1,6 +1,7 @@
 from gsheet_service import settings
 from gsheet_service.types import Result, config, get_provider_sheet
 import rpyc
+import json
 import asyncio
 
 
@@ -48,32 +49,14 @@ class RPCService:
 
     def get_jobs(self, job_id=None):
         jobs = self.rpc_connection.root.get_jobs()
-        if job_id:
-            return [x for x in jobs if x.id == job_id]
         return jobs
 
-    def parse_job_info(self, job):
-        next_run_time = job.next_run_time
-        return {
-            "kwargs": job.kwargs,
-            "args": list(job.args),
-            "id": job.id,
-            "next_run_time": next_run_time.isoformat() if next_run_time else "",
-            # "pending": job.pending,
-            "max_instances": job.max_instances,
-            "coalesce": job.coalesce,
-            "trigger": self.parse_trigger_info(job.trigger),
-        }
-
-    def parse_trigger_info(self, trigger):
-        end_date = trigger.end_date
-        start_date = trigger.start_date
-        return {
-            "start_date": start_date.isoformat() if start_date else "",
-            "end_date": end_date.isoformat() if end_date else "",
-            "interval": str(trigger.interval),
-            "timezone": str(trigger.timezone),
-        }
+    def parse_jobs(self, job_id=None):
+        jobs = self.rpc_connection.root.parse_jobs()
+        jobs = json.loads(jobs)
+        if job_id:
+            return [x for x in jobs if x["id"] == job_id]
+        return jobs
 
 
 async def create_job(identifier, **data) -> Result:
@@ -156,7 +139,6 @@ async def resume_job(identifier, **data) -> Result:
 
 
 async def delete_job(identifier, **data) -> Result:
-
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
     single_job = data.pop("job_id", None)
@@ -187,13 +169,13 @@ async def get_all_jobs(identifier, **data) -> Result:
     config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
     if config:
         instance = RPCService(config["host"], config["port"], config["server_method"])
-        jobs = instance.get_jobs()
-        with_info = [instance.parse_job_info(x) for x in jobs]
-        # if status == "paused":
-        #     with_info = [x for x in with_info if x['pending']]
-        # elif status == 'running':
-        #     with_info = [x for x in with_info if not x['pending']]
-        return Result(data=with_info)
+        jobs = instance.parse_jobs()
+        if status == "paused":
+            jobs = [x for x in jobs if x["next_run_time"] == ""]
+        if status == "running":
+            jobs = [x for x in jobs if x["next_run_time"] != ""]
+
+        return Result(data=jobs)
     return Result(error="Error with passed parameters")
 
 
@@ -203,7 +185,7 @@ async def get_job(identifier, job_id, **data) -> Result:
     config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
     if config:
         instance = RPCService(config["host"], config["port"], config["server_method"])
-        jobs = instance.get_jobs(job_id)
+        jobs = instance.parse_jobs(job_id)
         if jobs:
-            return Result(data=instance.parse_job_info(jobs[0]))
+            return Result(data=jobs[0])
     return Result(error=f"Could not fetch info for job with id {job_id}")
