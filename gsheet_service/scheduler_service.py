@@ -15,18 +15,28 @@ class RPCService:
     def rpc_connection(self):
         return rpyc.connect(self.SCHEDULER_URL, int(self.SCHEDULER_PORT))
 
-    async def rpc_create_job(self, trigger="interval", args=None, **kwargs):
+    async def rpc_create_job(
+        self, trigger="interval", args=None, advanced=False, **kwargs
+    ):
         # job = conn.root.add_job('server:print_text', args=['Hello, John'])
-        job = self.rpc_connection.root.add_job(
-            self.server_method,
-            trigger=trigger,
-            args=args,
-            **kwargs
-            # # trigger="interval",  # interval date or cron
-            # args=["https://payment.careerlyft.com", "GET"],
-            # # minutes=1,  # **trigger_args
-            # # minutes=1,  # **trigger_args
-        )
+        if advanced:
+            job = self.rpc_connection.root.add_job_advanced(
+                self.server_method,
+                trigger=json.dumps(trigger),
+                args=args,
+                **kwargs,
+            )
+        else:
+            job = self.rpc_connection.root.add_job(
+                self.server_method,
+                trigger=trigger,
+                args=args,
+                **kwargs
+                # # trigger="interval",  # interval date or cron
+                # args=["https://payment.careerlyft.com", "GET"],
+                # # minutes=1,  # **trigger_args
+                # # minutes=1,  # **trigger_args
+            )
         return job.id
 
     async def rpc_pause_job(self, job_id=None):

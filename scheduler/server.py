@@ -13,6 +13,10 @@ import os
 import json
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.combining import AndTrigger, OrTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.date import DateTrigger
+from apscheduler.triggers.cron import CronTrigger
 from utils import init_logging
 
 logging = init_logging(__name__)
@@ -60,7 +64,41 @@ def process_api_job(url, method, params=None, **kwargs):
 
 class SchedulerService(rpyc.Service):
     def exposed_add_job(self, func, *args, **kwargs):
+        # add ability to extend triggers
         return scheduler.add_job(func, *args, **kwargs)
+
+    def exposed_add_job_advanced(self, func, **kwargs):
+        """
+        {
+            "operator": "and",
+            "values":[
+                {
+                    "type":"cron",
+                    "params":{ "day_of_week": "mon,tue", "hour": 10 }
+                },
+                {
+                    "type":"interval",
+                    "params": {"seconds": 60}
+                }
+            ]
+        }
+        """
+        trigger = kwargs.pop("trigger", None)
+        options = {
+            "cron": CronTrigger,
+            "interval": IntervalTrigger,
+            "date": DateTrigger,
+        }
+        condition = {"and": AndTrigger, "or": OrTrigger}
+        trigger = json.loads(trigger)
+        if trigger and trigger.get("operator") and trigger.get("values"):
+            condition_func = condition[trigger["operator"]]
+            get_func = lambda x: options[x["type"]]
+            result = condition_func(
+                [get_func(x)(**x["params"]) for x in trigger["values"]]
+            )
+            return scheduler.add_job(func, result, **kwargs)
+        # return scheduler.add_job(func, *args, **kwargs)
 
     def exposed_modify_job(self, job_id, jobstore=None, **changes):
         return scheduler.modify_job(job_id, jobstore, **changes)
@@ -104,18 +142,76 @@ class SchedulerService(rpyc.Service):
             "pending": job.pending,
             "max_instances": job.max_instances,
             "coalesce": job.coalesce,
-            "trigger": self.parse_trigger_info(job.trigger),
+            "triggers": self.parse_trigger_info(job.trigger),
         }
 
     def parse_trigger_info(self, trigger):
-        end_date = trigger.end_date
-        start_date = trigger.start_date
-        return {
-            "start_date": start_date.isoformat() if start_date else "",
-            "end_date": end_date.isoformat() if end_date else "",
-            "interval": str(trigger.interval),
-            "timezone": str(trigger.timezone),
-        }
+        if hasattr(trigger, "triggers"):
+            result = []
+            for i in trigger.triggers:
+                if isinstance(i, IntervalTrigger):
+                    result.append(interval_trigger(i))
+                if isinstance(i, CronTrigger):
+                    result.append(cron_trigger(i))
+                if isinstance(i, DateTrigger):
+                    result.append(date_trigger(i))
+            return result
+        if isinstance(trigger, IntervalTrigger):
+            return interval_trigger(trigger)
+        if isinstance(trigger, CronTrigger):
+            return cron_trigger(trigger)
+        if isinstance(trigger, DateTrigger):
+            return date_trigger(trigger)
+        return {}
+
+
+def interval_trigger(trigger):
+    end_date = trigger.end_date
+    start_date = trigger.start_date
+    return {
+        "start_date": start_date.isoformat() if start_date else "",
+        "end_date": end_date.isoformat() if end_date else "",
+        "interval": str(trigger.interval),
+        "timezone": str(trigger.timezone),
+    }
+
+
+def cron_trigger(trigger: CronTrigger):
+
+    start_date = eval_none(trigger, "start_date")
+    end_date = eval_none(trigger, "end_date")
+    hour = eval_none(trigger, "hour")
+    minute = eval_none(trigger, "minute")
+    second = eval_none(trigger, "second")
+    year = eval_none(trigger, "year")
+    month = eval_none(trigger, "month")
+    day = eval_none(trigger, "day")
+    week = eval_none(trigger, "week")
+    day_of_week = eval_none(trigger, "day_of_week")
+    return {
+        "start_date": start_date.isoformat() if start_date else "",
+        "end_date": end_date.isoformat() if end_date else "",
+        "timezone": str(trigger.timezone),
+        "cron": " ".join([str(x) for x in trigger.fields]),
+    }
+
+
+def eval_none(trigger, key):
+    u = None
+    if hasattr(trigger, key):
+        u = getattr(trigger, key)
+    return u
+
+
+def date_trigger(trigger):
+    start_date = eval_none(trigger, "start_date")
+    end_date = eval_none(trigger, "end_date")
+    run_date = eval_none(trigger, "run_date")
+    return {
+        "run_date": run_date.isoformat() if run_date else "",
+        "start_date": start_date.isoformat() if start_date else "",
+        "end_date": end_date.isoformat() if end_date else "",
+    }
 
 
 if __name__ == "__main__":
