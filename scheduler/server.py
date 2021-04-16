@@ -118,6 +118,16 @@ class SchedulerService(rpyc.Service):
         scheduler.remove_job(job_id, jobstore)
         logging.info("Job removed ", job_id)
 
+    def exposed_modify_job(self, job_id, jobstore=None, params=None):
+        job = scheduler.get_job(job_id)
+        if params:
+            kwargs = json.loads(params)
+            reschedule = kwargs.pop('reschedule',None)
+            job.modify(**kwargs)
+            if reschedule:
+                job.reschedule(**reschedule)
+            logging.info("Job modified")
+
     def exposed_get_job(self, job_id):
         return scheduler.get_job(job_id)
 

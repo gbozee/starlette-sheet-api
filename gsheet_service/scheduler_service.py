@@ -10,10 +10,11 @@ class RPCService:
         self.SCHEDULER_URL = host
         self.SCHEDULER_PORT = port
         self.server_method = server_method
+        self.rpc_connection = rpyc.connect(self.SCHEDULER_URL, int(self.SCHEDULER_PORT))
 
-    @property
-    def rpc_connection(self):
-        return rpyc.connect(self.SCHEDULER_URL, int(self.SCHEDULER_PORT))
+    # @property
+    # def rpc_connection(self):
+    #     return rpyc.connect(self.SCHEDULER_URL, int(self.SCHEDULER_PORT))
 
     async def rpc_create_job(
         self, trigger="interval", args=None, advanced=False, **kwargs
@@ -60,6 +61,10 @@ class RPCService:
     def get_jobs(self, job_id=None):
         jobs = self.rpc_connection.root.get_jobs()
         return jobs
+
+    def rpc_modify_job(self, job_id, **kwargs):
+        if job_id:
+            job = self.rpc_connection.root.modify_job(job_id, params=json.dumps(kwargs))
 
     def parse_jobs(self, job_id=None):
         jobs = self.rpc_connection.root.parse_jobs()
@@ -195,6 +200,20 @@ async def get_job(identifier, job_id, **data) -> Result:
     config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
     if config:
         instance = RPCService(config["host"], config["port"], config["server_method"])
+        jobs = instance.parse_jobs(job_id)
+        if jobs:
+            return Result(data=jobs[0])
+    return Result(error=f"Could not fetch info for job with id {job_id}")
+
+
+async def edit_job(identifier, job_id, **data) -> Result:
+    link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
+    sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
+    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if config:
+        instance = RPCService(config["host"], config["port"], config["server_method"])
+        jobs = instance.rpc_modify_job(job_id, **data)
+        # get new id
         jobs = instance.parse_jobs(job_id)
         if jobs:
             return Result(data=jobs[0])

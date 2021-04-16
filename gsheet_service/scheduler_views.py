@@ -60,6 +60,16 @@ async def single_job(request: Request):
     return JSONResponse({"status": True, "data": result.data})
 
 
+async def edit_job(request: Request):
+    identifier = request.path_params["identifier"]
+    job_id = request.path_params["job_id"]
+    data = await request.json()
+    result = await scheduler_service.edit_job(identifier, job_id, **data)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
 routes = [
     Route("/{identifier}/jobs/create", create_job, methods=["POST"]),
     Route("/{identifier}/jobs/pause", pause_job, methods=["POST"]),
@@ -67,4 +77,5 @@ routes = [
     Route("/{identifier}/jobs/delete", delete_job, methods=["POST"]),
     Route("/{identifier}/jobs", list_jobs, methods=["POST"]),
     Route("/{identifier}/jobs/{job_id}", single_job, methods=["POST"]),
+    Route("/{identifier}/jobs/{job_id}/edit", edit_job, methods=["POST"]),
 ]
