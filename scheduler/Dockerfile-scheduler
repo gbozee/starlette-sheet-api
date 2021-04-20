@@ -1,0 +1,9 @@
+from python:3.6.8 
+
+RUN pip install -U pip 
+COPY . /scheduler
+RUN pip install -r /scheduler/requirements.txt
+
+WORKDIR /scheduler
+
+CMD python server.py

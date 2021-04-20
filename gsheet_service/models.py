@@ -210,7 +210,10 @@ def as_dict(arr, heading=None):
     for k in values:
         item = {}
         for i, j in enumerate(keys):
-            item[j] = k[i]
+            try:
+                item[j] = k[i]
+            except IndexError as e:
+                item[j] = ""
         results.append(item)
     return results
 

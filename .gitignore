@@ -131,3 +131,8 @@ startup.sh
 .now
 .vscode
 .vercel
+<<<<<<< HEAD
+=======
+docker-compose.yml
+client.py
+>>>>>>> upstream/master

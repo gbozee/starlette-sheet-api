@@ -3,46 +3,7 @@ import json
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2.rfc6749.errors import CustomOAuth2Error
 from gsheet_service import settings, models, email_providers
-
-
-class Result:
-    def __init__(
-        self,
-        error: str = None,
-        data: dict = None,
-        task: typing.List[typing.Any] = None,
-    ):
-        self.error = error
-        self.data = data
-        self.task = task
-
-
-config = dict(
-    project_id=settings.GOOGLE_PROJECT_ID,
-    private_key=settings.GOOGLE_PRIVATE_KEY,
-    private_key_id=settings.GOOGLE_PRIVATE_KEY_ID,
-    client_email=settings.GOOGLE_CLIENT_EMAIL,
-    client_id=settings.GOOGLE_CLIENT_ID,
-)
-
-if not settings.DEBUG:
-    config.update(private_key=json.loads(f'{config["private_key"]}'))
-else:
-    config.update(private_key=json.loads(f'"{config["private_key"]}"'))
-
-
-async def get_provider_sheet(
-    link=None, sheet=None, provider=None, key="client", **kwargs
-):
-    updated_config = {**config, **kwargs}
-    instance = models.GoogleSheetInterface(**updated_config)
-    instance.load_file(link, sheet)
-    result = instance.get_all_records()
-    if key:
-        found = [x for x in result if x[key].lower() == provider.lower()]
-        if found:
-            return found[0]
-    return None
+from gsheet_service.types import Result, config, get_provider_sheet
 
 
 def oauth_implementation(
@@ -102,11 +63,11 @@ def resolve_authorization_url(
             provider_instance["approval_prompt"] = kwargs["approval_prompt"]
     if "access_type" in kwargs:
         provider_instance["access_type"] = kwargs["access_type"]
-    if provider_instance.get('approval_prompt'):
+    if provider_instance.get("approval_prompt"):
         additional_params["approval_prompt"] = provider_instance["approval_prompt"]
-    if provider_instance.get('prompt'):
+    if provider_instance.get("prompt"):
         additional_params["prompt"] = provider_instance["prompt"]
-    if provider_instance.get('access_type'):
+    if provider_instance.get("access_type"):
         additional_params["access_type"] = provider_instance["access_type"]
     authorization_url, state = oauth_library.authorization_url(
         f"{provider_instance['base_url']}{provider_instance['authorization_url_path']}",
@@ -134,7 +95,9 @@ def resolve_token(
             string = string.replace("http://", "https://")
 
     token = oauth_library.fetch_token(
-        full_url, authorization_response=string, client_secret=client_secret,
+        full_url,
+        authorization_response=string,
+        client_secret=client_secret,
     )
     return token
 
@@ -254,7 +217,10 @@ async def get_refresh_token(
 
 
 async def get_emails(
-    provider, search_config=None, key="client", **kwargs,
+    provider,
+    search_config=None,
+    key="client",
+    **kwargs,
 ):
     generated_token, provider_instance = await get_refresh_token(
         provider, key=key, with_provider_instance=True, **kwargs

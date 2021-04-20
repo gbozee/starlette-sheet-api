@@ -1,0 +1,7 @@
+
+# scheduler code
+apscheduler==3.6.3
+Rpyc==4.1.5
+requests==2.24.0
+sqlalchemy==1.3.23
+psycopg2==2.8.6
