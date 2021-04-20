@@ -75,13 +75,17 @@ class RPCService:
 
 
 async def create_job(identifier, **data) -> Result:
+    server_config = data.pop("server_config", {})
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
     single_job = data.pop("job", None)
     multiple_jobs = data.pop("jobs", [])
     endpoint = data.pop("endpoint", None)
     method = data.pop("method", None)
-    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if server_config:
+        config = server_config
+    else:
+        config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
     if config and all([endpoint, method, any([single_job, multiple_jobs])]):
         instance = RPCService(config["host"], config["port"], config["server_method"])
         if multiple_jobs:
@@ -106,11 +110,16 @@ async def create_job(identifier, **data) -> Result:
 
 
 async def pause_job(identifier, **data) -> Result:
+    server_config = data.pop("server_config", {})
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
     single_job = data.pop("job_id", None)
     multiple_jobs = data.pop("job_ids", [])
-    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if server_config:
+        config = server_config
+    else:
+        config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+
     if config and any([single_job, multiple_jobs]):
         instance = RPCService(config["host"], config["port"], config["server_method"])
         if multiple_jobs:
@@ -130,11 +139,16 @@ async def pause_job(identifier, **data) -> Result:
 
 
 async def resume_job(identifier, **data) -> Result:
+    server_config = data.pop("server_config", {})
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
     single_job = data.pop("job_id", None)
     multiple_jobs = data.pop("job_ids", [])
-    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if server_config:
+        config = server_config
+    else:
+        config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+
     if config and any([single_job, multiple_jobs]):
         instance = RPCService(config["host"], config["port"], config["server_method"])
         if multiple_jobs:
@@ -154,11 +168,16 @@ async def resume_job(identifier, **data) -> Result:
 
 
 async def delete_job(identifier, **data) -> Result:
+    server_config = data.pop("server_config", {})
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
     single_job = data.pop("job_id", None)
     multiple_jobs = data.pop("job_ids", [])
-    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if server_config:
+        config = server_config
+    else:
+        config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+
     if config and any([single_job, multiple_jobs]):
         instance = RPCService(config["host"], config["port"], config["server_method"])
         if multiple_jobs:
@@ -178,10 +197,15 @@ async def delete_job(identifier, **data) -> Result:
 
 
 async def get_all_jobs(identifier, **data) -> Result:
+    server_config = data.pop("server_config", {})
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
     status = data.get("status", "all")
-    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if server_config:
+        config = server_config
+    else:
+        config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+
     if config:
         instance = RPCService(config["host"], config["port"], config["server_method"])
         jobs = instance.parse_jobs()
@@ -195,9 +219,14 @@ async def get_all_jobs(identifier, **data) -> Result:
 
 
 async def get_job(identifier, job_id, **data) -> Result:
+    server_config = data.pop("server_config", {})
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
-    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if server_config:
+        config = server_config
+    else:
+        config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+
     if config:
         instance = RPCService(config["host"], config["port"], config["server_method"])
         jobs = instance.parse_jobs(job_id)
@@ -209,7 +238,12 @@ async def get_job(identifier, job_id, **data) -> Result:
 async def edit_job(identifier, job_id, **data) -> Result:
     link = data.pop("link", None) or settings.SCHEDULER_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.SCHEDULER_SHEET_NAME
-    config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    server_config = data.pop("server_config", {})
+    if server_config:
+        config = server_config
+    else:
+        config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+
     if config:
         instance = RPCService(config["host"], config["port"], config["server_method"])
         jobs = instance.rpc_modify_job(job_id, **data)
