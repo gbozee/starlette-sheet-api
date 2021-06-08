@@ -1,0 +1,19 @@
+image: docker:git
+services:
+- docker:dind
+
+stages:
+- build
+
+variables:
+  CONTAINER_TEST_IMAGE: registry.gitlab.com/gbozee/starlette-sheet-api
+  
+build:
+  stage: build
+  script:
+    - docker login -u gbozee -p $REGISTRY_PASSWORD registry.gitlab.com
+    - docker build -t $CONTAINER_TEST_IMAGE -f Dockerfile .
+    - docker push $CONTAINER_TEST_IMAGE:latest
+  only:
+    - master
+
