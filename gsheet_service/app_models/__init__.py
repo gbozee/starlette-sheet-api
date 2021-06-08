@@ -1,7 +1,7 @@
-
 import databases
 import orm
 import sqlalchemy
+from orm.exceptions import NoMatch
 
 from .caches import RequestCache
 
@@ -68,18 +68,24 @@ class ServiceAPI:
             await self.database.disconnect()
 
     async def get_record(self, request_id: str):
-        result = await self.RequestCache.objects.filter(request_id=request_id).first()
-        if result:
+        try:
+            result = await self.RequestCache.objects.filter(
+                request_id=request_id
+            ).first()
             return result.data
-        return None
+        except NoMatch as e:
+            return None
 
     async def update_record(self, request_id: str, data):
         # check if it exists if it does, update else create
-        result = await self.RequestCache.objects.filter(request_id=request_id).first()
-        if result:
+        try:
+            result = await self.RequestCache.objects.filter(
+                request_id=request_id
+            ).first()
             result.data = data
             await result.save()
-        else:
+        except NoMatch as e:
             await self.RequestCache.objects.create(request_id=request_id, data=data)
+
 
 # service = ServiceAPI(settings.DATABASE_URL)

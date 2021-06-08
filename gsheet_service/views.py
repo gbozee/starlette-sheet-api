@@ -1,6 +1,4 @@
-import json
 import os
-import typing
 
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
@@ -11,8 +9,13 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from gsheet_service import (media_views, oauth_views, scheduler_views, service,
-                            settings, sheet_views)
+from gsheet_service import (
+    media_views,
+    oauth_views,
+    scheduler_views,
+    settings,
+    sheet_views,
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__name__))
 
@@ -138,11 +141,20 @@ routes = [
         name="static",
     ),
     Route("/oauth-callback", oauth_callback, methods=["GET"]),
-    Mount("", routes=sheet_views.routes),
     Mount("/oauth", routes=oauth_views.routes),
     Mount("/media", routes=media_views.routes),
-    Mount("/scheduler", routes=scheduler_views.routes)
+    Mount("/scheduler", routes=scheduler_views.routes),
+    Mount("", routes=sheet_views.routes),
     # Route("/secrets", secrets),
 ]
 
-app = Starlette(middleware=middlewares, routes=routes)
+
+on_startup = [] + sheet_views.on_startup
+on_shutdown = [] + sheet_views.on_shutdown
+
+app = Starlette(
+    middleware=middlewares,
+    routes=routes,
+    on_startup=on_startup,
+    on_shutdown=on_shutdown,
+)

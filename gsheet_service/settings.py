@@ -1,5 +1,5 @@
 from starlette.config import Config
-from starlette.datastructures import Secret, URL
+from starlette.datastructures import URL, Secret
 
 config = Config(".env")
 SECRET= config("APP_SECRET")
@@ -16,6 +16,7 @@ MEDIA_SHEET_NAME = config("MEDIA_SHEET_NAME")
 MEDIA_SPREADSHEET = config("MEDIA_SPREADSHEET")
 SCHEDULER_SPREADSHEET = config("SCHEDULER_SPREADSHEET")
 SCHEDULER_SHEET_NAME = config("SCHEDULER_SHEET_NAME")
+DATABASE_URL=config("DATABASE_URL",default="")
 # IMAGE_SERVICES = {
 #     "cloudinary": {
 #         "cloud_name": config("CLOUDINARY_CLOUD_NAME"),
