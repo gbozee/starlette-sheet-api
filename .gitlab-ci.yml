@@ -6,7 +6,7 @@ stages:
 - build
 
 variables:
-  CONTAINER_TEST_IMAGE: registry.gitlab.com/gbozee/starlette-sheet-api
+  CONTAINER_TEST_IMAGE: registry.gitlab.com/gbozee/now_sheet
   
 build:
   stage: build
