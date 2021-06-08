@@ -2,6 +2,7 @@ from starlette.config import Config
 from starlette.datastructures import Secret, URL
 
 config = Config(".env")
+SECRET= config("APP_SECRET")
 DEBUG = config("DEBUG", cast=bool, default=True)
 GOOGLE_PROJECT_ID = config("GOOGLE_PROJECT_ID")
 GOOGLE_PRIVATE_KEY = config("GOOGLE_PRIVATE_KEY")

@@ -9,3 +9,8 @@ cloudinary==1.24.0
 
 python-multipart==0.0.5
 Rpyc==4.1.5
+
+https://github.com/gbozee/orm/archive/refs/tags/0.1.5.3.zip
+alembic==1.0.10
+databases[postgresql]
+psycopg2-binary==2.8.6
