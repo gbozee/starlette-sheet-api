@@ -59,7 +59,8 @@ async def update_existing(**data):
     update_data = data.get("data")
     key = encode_obj({**data, "method": "update_existing"})
     callback = lambda: service.update_row(link, sheet, key, value, update_data)
-    return await check_database(key, callback)
+    return await callback()
+    # return await check_database(key, callback)
 
 
 async def read_last(**data):
