@@ -87,5 +87,8 @@ class ServiceAPI:
         except NoMatch as e:
             await self.RequestCache.objects.create(request_id=request_id, data=data)
 
+    async def purge_db(self):
+        await self.RequestCache.objects.filter(id__gt=-1).delete()
+
 
 # service = ServiceAPI(settings.DATABASE_URL)

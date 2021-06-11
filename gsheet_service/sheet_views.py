@@ -90,6 +90,13 @@ async def read_new_row(request: Request):
     return JSONResponse({"status": True, "data": result.data})
 
 
+async def clear_db(request: Request):
+    result = await sheet_service.clear_database()
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
 routes = [
     Route("/read-single", read_row, methods=["POST"]),
     Route("/read-new-single", read_new_row, methods=["POST"]),
@@ -99,6 +106,7 @@ routes = [
     Route("/add", add_new, methods=["POST"]),
     Route("/read-last", read_last, methods=["POST"]),
     Route("/fetch-groups", fetch_groups, methods=["POST"]),
+    Route("/clear-db", clear_db, methods=["GET"]),
     # Route("/secrets", secrets),
 ]
 

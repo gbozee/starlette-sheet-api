@@ -120,3 +120,9 @@ async def read_new_row(**data):
     )
 
     return await check_database(key, callback)
+
+
+async def clear_database(**data):
+    if service_api:
+        await service_api.purge_db()
+    return service.Result(data={"cleaned_db": True})
