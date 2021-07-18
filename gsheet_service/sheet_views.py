@@ -1,4 +1,5 @@
 import os
+from starlette.background import BackgroundTask
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -12,6 +13,12 @@ from gsheet_service import (
 BASE_DIR = os.path.dirname(os.path.abspath(__name__))
 
 service_api = sheet_service.service_api
+
+
+async def bg_task():
+    print("Clearing db cache")
+    await sheet_service.clear_database()
+    print("cleared db cache")
 
 
 async def fetch_groups(request: Request):
@@ -38,6 +45,24 @@ async def read_sheetnames(request: Request):
     return JSONResponse({"status": True, "data": result.data})
 
 
+async def create_new_sheet(request: Request):
+    data = await request.json()
+    result: service.Result = await sheet_service.new_sheet(**data)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    task = BackgroundTask(bg_task)
+    return JSONResponse({"status": True, "data": result.data}, background=task)
+
+
+async def edit_existing_sheet(request: Request):
+    data = await request.json()
+    result: service.Result = await sheet_service.edit_sheet(**data)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    task = BackgroundTask(bg_task)
+    return JSONResponse({"status": True, "data": result.data}, background=task)
+
+
 # async def secrets(request: Request):
 #     return JSONResponse(service.config)
 
@@ -47,7 +72,8 @@ async def update_existing(request: Request):
     result: service.Result = await sheet_service.update_existing(**data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
-    return JSONResponse({"status": True, "data": result.data})
+    task = BackgroundTask(bg_task)
+    return JSONResponse({"status": True, "data": result.data}, background=task)
 
 
 async def read_last(request: Request):
@@ -63,7 +89,9 @@ async def add_new(request: Request):
     result: service.Result = await sheet_service.add_new(**data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
-    return JSONResponse({"status": True, "data": result.data})
+
+    task = BackgroundTask(bg_task)
+    return JSONResponse({"status": True, "data": result.data}, background=task)
 
 
 async def read_new_row(request: Request):
@@ -104,6 +132,8 @@ routes = [
     Route("/read-sheetnames", read_sheetnames, methods=["POST"]),
     Route("/update", update_existing, methods=["POST"]),
     Route("/add", add_new, methods=["POST"]),
+    Route("/add-sheet", create_new_sheet, methods=["POST"]),
+    Route("/edit-sheet", edit_existing_sheet, methods=["POST"]),
     Route("/read-last", read_last, methods=["POST"]),
     Route("/fetch-groups", fetch_groups, methods=["POST"]),
     Route("/clear-db", clear_db, methods=["GET"]),

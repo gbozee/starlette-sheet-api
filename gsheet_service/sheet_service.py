@@ -44,10 +44,31 @@ async def read_row(**data):
     return await check_database(key, callback)
 
 
+async def new_sheet(**data):
+    link = data.get("link")
+    sheet = data.get("sheet")
+    heading = data.get("data")
+    key = encode_obj({**data, "method": "add_new_sheet"})
+    callback = lambda: service.new_sheet(link, sheet, heading)
+    return await check_database(key, callback)
+
+
+async def edit_sheet(**data):
+    link = data.get("link")
+    sheet = data.get("sheet")
+    heading = data.get("data")
+    key = encode_obj({**data, "method": "edit_sheet"})
+    callback = lambda: service.edit_sheet(link, sheet, heading)
+    return await check_database(key, callback)
+
+
 async def read_sheetnames(**data):
     link = data.get("link")
+    reset = data.pop("reset", False)
     key = encode_obj({**data, "method": "read_sheetnames"})
     callback = lambda: service.read_sheetnames(link)
+    if reset:
+        return await callback()
     return await check_database(key, callback)
 
 
@@ -77,7 +98,8 @@ async def add_new(**data):
     update_data = data.get("data")
     key = encode_obj({**data, "method": "add_new"})
     callback = lambda: service.add_to_sheet(link, sheet, update_data)
-    return await check_database(key, callback)
+    return await callback()
+    # return await check_database(key, callback)
 
 
 async def read_new_row(**data):

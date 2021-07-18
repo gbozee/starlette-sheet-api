@@ -45,6 +45,21 @@ async def read_last_row(link, sheet) -> Result:
     return Result(data=result)
 
 
+async def new_sheet(link, sheet, value):
+    if not link or not sheet:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    result = instance.create_new_sheet(link, sheet, value)
+    return Result(data=result)
+
+async def edit_sheet(link, sheet, value):
+    if not link or not sheet:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    result = instance.edit_sheet(link, sheet, value)
+    return Result(data=result)
+
+
 async def add_to_sheet(link, sheet, value):
     if not link or not sheet:
         return Result(error="Missing `link` or `sheet` value")
