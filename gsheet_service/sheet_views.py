@@ -72,7 +72,15 @@ async def update_existing(request: Request):
     result: service.Result = await sheet_service.update_existing(**data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
-    task = BackgroundTask(bg_task)
+
+    async def remove_row():
+        print("Clearing row cache")
+        await sheet_service.delete_key(
+            link=data["link"], sheet=data["sheet"], key=data["key"], value=data["value"]
+        )
+        print("cleared row cache")
+
+    task = BackgroundTask(remove_row)
     return JSONResponse({"status": True, "data": result.data}, background=task)
 
 
