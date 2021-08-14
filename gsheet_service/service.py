@@ -17,6 +17,7 @@ async def read_row(link, sheet, key, value) -> Result:
         found = [x for x in result if x[key] == value]
         if found:
             return Result(data=found[0])
+        return Result(error="Missing result")
     return Result(data=result)
 
 
@@ -51,6 +52,7 @@ async def new_sheet(link, sheet, value):
     instance = models.GoogleSheetInterface(**config)
     result = instance.create_new_sheet(link, sheet, value)
     return Result(data=result)
+
 
 async def edit_sheet(link, sheet, value):
     if not link or not sheet:
