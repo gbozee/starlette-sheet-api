@@ -90,5 +90,15 @@ class ServiceAPI:
     async def purge_db(self):
         await self.RequestCache.objects.filter(id__gt=-1).delete()
 
+    async def delete_record(self, request_id: str):
+        try:
+            result = await self.RequestCache.objects.filter(
+                request_id=request_id
+            ).first()
+            await result.delete()
+            return True
+        except NoMatch as e:
+            return None
+
 
 # service = ServiceAPI(settings.DATABASE_URL)

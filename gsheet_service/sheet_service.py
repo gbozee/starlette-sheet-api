@@ -44,6 +44,14 @@ async def read_row(**data):
     return await check_database(key, callback)
 
 
+async def delete_key(**data):
+    key = encode_obj({**data, "method": "read_row"})
+    result = await service_api.delete_record(key)
+    if result:
+        return service.Result(data={"msg": "Successfull"})
+    return service.Result(error="Missing key record found")
+
+
 async def new_sheet(**data):
     link = data.get("link")
     sheet = data.get("sheet")

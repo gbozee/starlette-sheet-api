@@ -125,6 +125,14 @@ async def clear_db(request: Request):
     return JSONResponse({"status": True, "data": result.data})
 
 
+async def delete_key(request: Request):
+    data = await request.json()
+    result: service.Result = await sheet_service.delete_key(**data)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
 routes = [
     Route("/read-single", read_row, methods=["POST"]),
     Route("/read-new-single", read_new_row, methods=["POST"]),
@@ -137,6 +145,7 @@ routes = [
     Route("/read-last", read_last, methods=["POST"]),
     Route("/fetch-groups", fetch_groups, methods=["POST"]),
     Route("/clear-db", clear_db, methods=["GET"]),
+    Route("/delete-record", delete_key, methods=["POST"])
     # Route("/secrets", secrets),
 ]
 
