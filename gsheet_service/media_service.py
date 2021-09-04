@@ -19,19 +19,25 @@ async def create_cloudinary_image(identifier, **data) -> Result:
     link = data.pop("link", None) or settings.MEDIA_SPREADSHEET
     sheet = data.pop("sheet", None) or settings.MEDIA_SHEET_NAME
     image = data.pop("image", None)
+    url = data.pop("url", None)
     resource_type = data.pop("resource_type", None) or "image"
     if server_config:
         config = server_config
     else:
         config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
+    if url:
+        image = url
     if image and config:
+        if url:
+            image = None
         result = media_utils.MediaServiceAPI.create_resource(
-            image, config=config, resource_type=resource_type, **data
+            image, config=config, resource_type=resource_type, url=url, **data
         )
         return Result(data=result)
     return Result(
         error="Error creating the image in cloudinary, missing image or invalid config"
     )
+
 
 async def create_cloudinary_video(identifier, **data) -> Result:
     server_config = data.pop("server_config", {})
@@ -51,6 +57,7 @@ async def create_cloudinary_video(identifier, **data) -> Result:
     return Result(
         error="Error creating the video in cloudinary, missing video or invalid config"
     )
+
 
 async def create_cloudinary_video(identifier, **data) -> Result:
     server_config = data.pop("server_config", {})
@@ -108,6 +115,7 @@ async def get_cloudinary_url(identifier, kind, public_id, **data) -> Result:
     return Result(
         error="Error getting the image in cloudinary, missing public_id or invalid config"
     )
+
 
 async def delete_cloudinary_resource(identifier, public_id, **data) -> Result:
     server_config = data.pop("server_config", {})
