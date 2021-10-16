@@ -4,15 +4,16 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from gsheet_service import media_service, settings
 
+
 async def upload_resource(request: Request):
     identifier = request.path_params["identifier"]
-    content_type = request.headers['content-type']
-    if content_type == 'application/json':
+    content_type = request.headers["content-type"]
+    if content_type == "application/json":
         data = await request.json()
         kind = data.pop("kind", None)
-        if kind == 'audio':
+        if kind == "audio":
             result = await media_service.create_cloudinary_audio(identifier, **data)
-        elif kind == 'video':
+        elif kind == "video":
             result = await media_service.create_cloudinary_video(identifier, **data)
         else:
             result = await media_service.create_cloudinary_image(identifier, **data)
@@ -20,18 +21,20 @@ async def upload_resource(request: Request):
         form_data = await request.form()
         kind = list(form_data.keys())[0]
         data = dict(form_data)
-        if kind == 'audio':
-            data['audio'] = await form_data["audio"].read()
+        kind = data.get("kind") or kind
+        if kind == "audio":
+            data["audio"] = await form_data["audio"].read()
             result = await media_service.create_cloudinary_audio(identifier, **data)
-        elif kind == 'video':
-            data['video'] = await form_data["video"].read()
+        elif kind == "video":
+            data["video"] = await form_data["video"].read()
             result = await media_service.create_cloudinary_video(identifier, **data)
         else:
-            data['image'] = await form_data["image"].read()
+            data["image"] = await form_data["image"].read()
             result = await media_service.create_cloudinary_image(identifier, **data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
+
 
 async def get_cloudinary_url(request: Request):
     identifier = request.path_params["identifier"]
@@ -42,6 +45,7 @@ async def get_cloudinary_url(request: Request):
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
+
 
 async def delete_resource(request: Request):
     identifier = request.path_params["identifier"]
@@ -54,9 +58,9 @@ async def delete_resource(request: Request):
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
     return JSONResponse({"status": True, "data": result.data})
 
+
 routes = [
     Route("/{identifier}/upload", upload_resource, methods=["POST"]),
     Route("/{identifier}/get_url", get_cloudinary_url, methods=["POST"]),
     Route("/{identifier}/delete", delete_resource, methods=["POST"]),
 ]
-
