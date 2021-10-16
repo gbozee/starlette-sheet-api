@@ -40,6 +40,7 @@ class CloudinaryInstance(ResourceInstance):
         self.resource_type = resource_type
         if self.uploaded:
             self.instance = self.resource_options[resource_type](image)
+        self.full_response = {}
 
     @property
     def resource_options(self):
@@ -80,6 +81,7 @@ class CloudinaryInstance(ResourceInstance):
         folder=None,
         kind=None,
         resource_type="image",
+        quality_check=True,
         **kwargs,
     ):
         # func = cloudinary.uploader.upload_image
@@ -89,11 +91,13 @@ class CloudinaryInstance(ResourceInstance):
         if self.resource_type:
             r_type = self.resource_type
         if not self.uploaded:
-            result = func(
-                new_file, public_id=file_name, folder=folder, resource_type=r_type
-            )
+            params = dict(public_id=file_name, folder=folder, resource_type=r_type)
+            if quality_check:
+                params["quality_analysis"] = 1
+            result = func(new_file, **params)
             self.uploaded = True
             self.instance = self.resource_options[resource_type](result["public_id"])
+            self.full_response = result
 
 
 def get_instance(key: str, **kwargs):
@@ -151,6 +155,7 @@ class MediaServiceAPI:
         return dict(
             service=service,
             resource_id=instance.public_id,
+            full_response=instance.full_response,
             kind=kwargs.get("resource_type"),
         )
 

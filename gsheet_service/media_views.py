@@ -19,17 +19,15 @@ async def upload_resource(request: Request):
     else:
         form_data = await request.form()
         kind = list(form_data.keys())[0]
+        data = dict(form_data)
         if kind == 'audio':
-            contents = await form_data["audio"].read()
-            data = {"audio": contents}
+            data['audio'] = await form_data["audio"].read()
             result = await media_service.create_cloudinary_audio(identifier, **data)
         elif kind == 'video':
-            contents = await form_data["video"].read()
-            data = {"video": contents}
+            data['video'] = await form_data["video"].read()
             result = await media_service.create_cloudinary_video(identifier, **data)
         else:
-            contents = await form_data["image"].read()
-            data = {"image": contents}
+            data['image'] = await form_data["image"].read()
             result = await media_service.create_cloudinary_image(identifier, **data)
     if result.error:
         return JSONResponse({"status": False, "msg": result.error}, status_code=400)
