@@ -97,6 +97,7 @@ async def read_last(**data):
     sheet = data.get("sheet")
     key = encode_obj({**data, "method": "read_last"})
     callback = lambda: service.read_last_row(link, sheet)
+    return await callback()
     return await check_database(key, callback)
 
 
