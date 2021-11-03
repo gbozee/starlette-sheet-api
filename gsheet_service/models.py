@@ -172,14 +172,26 @@ class GoogleSheetInterface:
         keys = all_values[0]
         return {x: get_key_index(all_values, x) for x in keys}
 
-    def get_row_cell_ids(self, key, value):
-        all_values = self.sheet.get_all_values()
+    def get_row_cell_ids(self, key, value, addition=0):
+        all_values = self.sheet.get_all_records()
         keys = all_values[0]
-        row_index = get_row_index(all_values, value)
-        return {x: [row_index, get_key_index(all_values, x)] for x in keys}
+        row_index = 0
+        for i, j in enumerate(all_values):
+            if j[key] == value:
+                row_index = i
+        row_index = row_index + 1
+        # import pdb; pdb.set_trace()
+        # row_index = get_row_index(all_values, value, index=addition)
+        # if row_index == None:
+        #     row_index = 1
+        # row_index = row_index + addition
+        return {
+            x: [row_index + addition, get_key_index(self.sheet.get_all_values(), x)]
+            for x in keys
+        }
 
     def update_existing_record(self, key, value, data, check=False):
-        cell_ids_dict = self.get_row_cell_ids(key, value)
+        cell_ids_dict = self.get_row_cell_ids(key, value, 1)
         if check:
             valid = all([p in cell_ids_dict.keys() for p in data.keys()])
             if not valid:
@@ -220,11 +232,13 @@ def get_key_index(all_values, key):
     return all_values[0].index(key) + 1
 
 
-def get_row_index(all_values, value):
+def get_row_index(all_values, value, index=0):
     row_index = None
     found_item = [(i, j) for i, j in enumerate(all_values) if value in j]
     if found_item:
         row_index = found_item[0][0] + 1
+    if row_index is not None:
+        row_index = row_index
     return row_index
 
 
