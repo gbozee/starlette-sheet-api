@@ -24,6 +24,7 @@ async def create_cloudinary_image(identifier, **data) -> Result:
     if server_config:
         config = server_config
     else:
+        print({"link": link, "sheet": sheet})
         config = await get_provider_sheet(link=link, sheet=sheet, provider=identifier)
     # import pdb; pdb.set_trace()
     if url:
