@@ -261,8 +261,43 @@ class GoogleSheetInterface:
         _min = min(indexes)
         _max = max(indexes)
         last_row = self.get_row_to_write()
-        range = f"{options[_min]}{_min+1}:{options[_max]}{last_row}"
-        self.sheet.batch_clear([range])
+        self.sheet.delete_rows(_min + 1, last_row)
+
+    def bulk_add(self, data):
+        options = {
+            1: "A",
+            2: "B",
+            3: "C",
+            4: "D",
+            5: "E",
+            6: "F",
+            7: "G",
+            8: "H",
+            9: "I",
+            10: "J",
+            11: "K",
+            12: "L",
+            13: "M",
+            14: "N",
+            15: "0",
+            16: "P",
+            17: "Q",
+            18: "R",
+            19: "S",
+            20: "T",
+            21: "U",
+            22: "V",
+            23: "W",
+            24: "X",
+            25: "Y",
+            26: "Z",
+        }
+        indexes = self.get_indexes().values()
+        _min = min(indexes)
+        _max = max(indexes)
+        last_row = self.get_row_to_write()
+        ranges = f"{options[_min]}{last_row}:{options[_max]}{last_row+(len(data)-1)}"
+        self.sheet.update(ranges, data)
 
 
 def get_key_index(all_values, key):

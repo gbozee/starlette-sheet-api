@@ -76,8 +76,9 @@ async def add_multiple_rows(link, sheet, values):
         return Result(error="Missing `link` or `sheet` value")
     instance = models.GoogleSheetInterface(**config)
     instance.load_file(link, sheet)
-    for i in values:
-        key, value = instance.update_records(i)
+    instance.bulk_add(values)
+    # for i in values:
+    #     key, value = instance.update_records(i)
     return await read_row(link, sheet, None, None)
 
 
