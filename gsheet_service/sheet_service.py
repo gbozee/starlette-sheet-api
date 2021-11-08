@@ -111,6 +111,22 @@ async def add_new(**data):
     # return await check_database(key, callback)
 
 
+async def add_multiple_rows(**data):
+    link = data.get("link")
+    sheet = data.get("sheet")
+    update_data = data.get("data")
+    callback = lambda: service.add_multiple_rows(link, sheet, update_data)
+    return await callback()
+    # return await check_database(key, callback)
+
+
+async def clear_all_rows(**data):
+    link = data.get("link")
+    sheet = data.get("sheet")
+    callback = lambda: service.clear_all_rows(link, sheet)
+    return await callback()
+
+
 async def read_new_row(**data):
     link = data.get("link")
     primary_key = data.get("key")

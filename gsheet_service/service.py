@@ -71,6 +71,25 @@ async def add_to_sheet(link, sheet, value):
     return await read_row(link, sheet, key, value[key])
 
 
+async def add_multiple_rows(link, sheet, values):
+    if not link or not sheet:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    instance.load_file(link, sheet)
+    for i in values:
+        key, value = instance.update_records(i)
+    return await read_row(link, sheet, None, None)
+
+
+async def clear_all_rows(link, sheet):
+    if not link or not sheet:
+        return Result(error="Missing `link` or `sheet` value")
+    instance = models.GoogleSheetInterface(**config)
+    instance.load_file(link, sheet)
+    instance.clear()
+    return await read_row(link, sheet, None, None)
+
+
 async def fetch_groups(link, sheet, segments):
     if not link or not sheet:
         return Result(error="Missing `link` or `sheet` value")

@@ -198,6 +198,7 @@ class GoogleSheetInterface:
                 raise KeyError("Invalid params passed")
         for x, y in data.items():
             coordinate = cell_ids_dict[x]
+            print(coordinate)
             self.sheet.update_cell(*coordinate, y)
 
     def fetch_groups(self, segments):
@@ -226,6 +227,42 @@ class GoogleSheetInterface:
                 complete_values[column] = expected_dict
 
         return complete_values
+
+    def clear(self):
+        options = {
+            1: "A",
+            2: "B",
+            3: "C",
+            4: "D",
+            5: "E",
+            6: "F",
+            7: "G",
+            8: "H",
+            9: "I",
+            10: "J",
+            11: "K",
+            12: "L",
+            13: "M",
+            14: "N",
+            15: "0",
+            16: "P",
+            17: "Q",
+            18: "R",
+            19: "S",
+            20: "T",
+            21: "U",
+            22: "V",
+            23: "W",
+            24: "X",
+            25: "Y",
+            26: "Z",
+        }
+        indexes = self.get_indexes().values()
+        _min = min(indexes)
+        _max = max(indexes)
+        last_row = self.get_row_to_write()
+        range = f"{options[_min]}{_min+1}:{options[_max]}{last_row}"
+        self.sheet.batch_clear([range])
 
 
 def get_key_index(all_values, key):

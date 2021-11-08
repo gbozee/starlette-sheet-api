@@ -102,6 +102,26 @@ async def add_new(request: Request):
     return JSONResponse({"status": True, "data": result.data}, background=task)
 
 
+async def clear_all_rows(request: Request):
+    data = await request.json()
+    result: service.Result = await sheet_service.clear_all_rows(**data)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+
+    task = BackgroundTask(bg_task)
+    return JSONResponse({"status": True, "data": result.data}, background=task)
+
+
+async def add_multiple_rows(request: Request):
+    data = await request.json()
+    result: service.Result = await sheet_service.add_multiple_rows(**data)
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+
+    task = BackgroundTask(bg_task)
+    return JSONResponse({"status": True, "data": result.data}, background=task)
+
+
 async def read_new_row(request: Request):
     data = await request.json()
     result: service.Result = await sheet_service.read_new_row(**data)
@@ -153,8 +173,9 @@ routes = [
     Route("/read-last", read_last, methods=["POST"]),
     Route("/fetch-groups", fetch_groups, methods=["POST"]),
     Route("/clear-db", clear_db, methods=["GET"]),
-    Route("/delete-record", delete_key, methods=["POST"])
-    # Route("/secrets", secrets),
+    Route("/delete-record", delete_key, methods=["POST"]),
+    Route("/clear-all-rows", clear_all_rows, methods=["POST"]),
+    Route("/add-multiple-rows", add_multiple_rows, methods=["POST"]),
 ]
 
 
