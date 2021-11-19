@@ -26,6 +26,11 @@ async def upload_resource(request: Request):
             kind = params[0]
             data = dict(form_data)
             kind = data.pop("kind", None) or kind
+            server_config = data.pop("server_config", None)
+            if server_config:
+                import json
+
+                data["server_config"] = json.loads(server_config)
             if kind == "audio":
                 data["audio"] = await form_data["audio"].read()
                 result = await media_service.create_cloudinary_audio(identifier, **data)
