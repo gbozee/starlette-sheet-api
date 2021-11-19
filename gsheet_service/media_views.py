@@ -3,6 +3,7 @@ from starlette.routing import Route
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from gsheet_service import media_service, settings
+
 # working well
 
 
@@ -20,21 +21,32 @@ async def upload_resource(request: Request):
             result = await media_service.create_cloudinary_image(identifier, **data)
     else:
         form_data = await request.form()
-        kind = list(form_data.keys())[0]
-        data = dict(form_data)
-        kind = data.pop("kind", None) or kind
-        if kind == "audio":
-            data["audio"] = await form_data["audio"].read()
-            result = await media_service.create_cloudinary_audio(identifier, **data)
-        elif kind == "video":
-            data["video"] = await form_data["video"].read()
-            result = await media_service.create_cloudinary_video(identifier, **data)
-        else:
-            data["image"] = await form_data["image"].read()
-            result = await media_service.create_cloudinary_image(identifier, **data)
-    if result.error:
-        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
-    return JSONResponse({"status": True, "data": result.data})
+        params = list(form_data.keys())
+        if params:
+            kind = params[0]
+            data = dict(form_data)
+            kind = data.pop("kind", None) or kind
+            if kind == "audio":
+                data["audio"] = await form_data["audio"].read()
+                result = await media_service.create_cloudinary_audio(identifier, **data)
+            elif kind == "video":
+                data["video"] = await form_data["video"].read()
+                result = await media_service.create_cloudinary_video(identifier, **data)
+            else:
+                data["image"] = await form_data["image"].read()
+                result = await media_service.create_cloudinary_image(identifier, **data)
+            if result.error:
+                return JSONResponse(
+                    {"status": False, "msg": result.error}, status_code=400
+                )
+            return JSONResponse({"status": True, "data": result.data})
+        if not params:
+            return JSONResponse(
+                {"status": False, "msg_data": {"params": params}}, status_code=400
+            )
+        return JSONResponse(
+            {"status": False, "msg": "Error from server"}, status_code=400
+        )
 
 
 async def get_cloudinary_url(request: Request):
