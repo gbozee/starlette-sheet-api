@@ -15,6 +15,7 @@ from gsheet_service import (
     scheduler_views,
     settings,
     sheet_views,
+    spell_check_views,
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__name__))
@@ -144,6 +145,7 @@ routes = [
     Mount("/oauth", routes=oauth_views.routes),
     Mount("/media", routes=media_views.routes),
     Mount("/scheduler", routes=scheduler_views.routes),
+    Mount("/sc", routes=spell_check_views.routes),
     Mount("", routes=sheet_views.routes),
     # Route("/secrets", secrets),
 ]
