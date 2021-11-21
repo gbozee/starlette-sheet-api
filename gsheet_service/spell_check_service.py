@@ -3,6 +3,9 @@ from os import error
 from gsheet_service.types import Result, get_provider_sheet
 import requests
 
+# Imports the Google Cloud client library
+from google.cloud import language_v1
+
 
 async def process_spell_check(**data):
     web_spell_check, similarity_check = await asyncio.gather(
@@ -93,3 +96,23 @@ async def similarity_check_api(**data) -> Result:
         )
         return Result(data=results)
     return Result(error="Missing url, main_text, other_text or api_key")
+
+
+async def google_nlp(text: str):
+    # Instantiates a client
+    client = language_v1.LanguageServiceClient()
+
+    document = language_v1.Document(
+        content=text, type_=language_v1.Document.Type.PLAIN_TEXT
+    )
+
+    # Detects the sentiment of the text
+    sentiment = client.analyze_sentiment(
+        request={"document": document}
+    ).document_sentiment
+    return Result(
+        data={
+            "text": text,
+            "sentiment": {"score": sentiment.score, "magnitude": sentiment.magnitude},
+        }
+    )

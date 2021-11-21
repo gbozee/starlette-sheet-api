@@ -12,7 +12,16 @@ async def spell_check(request: Request):
     return JSONResponse({"status": True, "data": result.data})
 
 
+async def google_cloud(request: Request):
+    data = await request.json()
+    result: service.Result = await service.google_nlp(data["text"])
+    if result.error:
+        return JSONResponse({"status": False, "msg": result.error}, status_code=400)
+    return JSONResponse({"status": True, "data": result.data})
+
+
 routes = [Route("/evaluate", spell_check, methods=["POST"])]
+routes = [Route("/google-cloud", google_cloud, methods=["POST"])]
 
 on_startup = []
 on_shutdown_task = []
