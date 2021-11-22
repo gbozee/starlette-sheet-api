@@ -98,21 +98,86 @@ async def similarity_check_api(**data) -> Result:
     return Result(error="Missing url, main_text, other_text or api_key")
 
 
-async def google_nlp(text: str):
-    # Instantiates a client
+async def google_nlp(**data):
+    content = data.get("text")
+    if not content:
+        return Result(error={"msg": "Missing text"})
     client = language_v1.LanguageServiceClient()
-
+    encoding_type = language_v1.EncodingType.UTF8
     document = language_v1.Document(
-        content=text, type_=language_v1.Document.Type.PLAIN_TEXT
+        content=content, type_=language_v1.Document.Type.PLAIN_TEXT
     )
+    result = {}
+    response = client.analyze_entities(
+        request={"document": document, "encoding_type": encoding_type},
+    )
+    entities = []
+    for entity in response.entities:
+        sentiment = entity.sentiment
+        entities.append(
+            {
+                "name": entity.name,
+                "type": language_v1.Entity.Type(entity.type_).name,
+                "salience_score": entity.salience,
+                "sentiment": {
+                    "score": sentiment.score,
+                    "magnitude": sentiment.magnitude,
+                },
+                "metadata": [
+                    {"name": x[0], "value": x[1]} for x in entity.metadata.items()
+                ],
+                "mention": [
+                    {
+                        "text": x.text.content,
+                        "type": language_v1.EntityMention.Type(x.type_).name,
+                    }
+                    for x in entity.mentions
+                ],
+            }
+        )
+    result["entities"] = entities
+    response = client.analyze_sentiment(
+        request={"document": document, "encoding_type": encoding_type}
+    )
+    sentiment = {
+        "score": response.document_sentiment.score,
+        "magnitude": response.document_sentiment.magnitude,
+        "sentences": [
+            {
+                "text": x.text.content,
+                "score": x.sentiment.score,
+                "magnitude": x.sentiment.magnitude,
+            }
+            for x in response.sentences
+        ],
+    }
+    result["sentiment"] = sentiment
+    response = client.analyze_syntax(
+        request={"document": document, "encoding_type": encoding_type}
+    )
+    tokens = []
+    for token in response.tokens:
+        text = token.text
+        part_of_speech = token.part_of_speech
+        dependency_edge = token.dependency_edge
+        tokens.append(
+            {
+                "text": text.content,
+                "location": text.begin_offset,
+                "part_of_speech": language_v1.PartOfSpeech.Tag(part_of_speech.tag).name,
+                "voice": language_v1.PartOfSpeech.Voice(part_of_speech.voice).name,
+                "tense": language_v1.PartOfSpeech.Tense(part_of_speech.tense).name,
+                "lemma": token.lemma,
+                "head_token_index": dependency_edge.head_token_index,
+                "label": language_v1.DependencyEdge.Label(dependency_edge.label).name,
+            }
+        )
+    result["tokens"] = tokens
+    response = client.classify_text(request={"document": document})
+    categories = []
+    for category in response.categories:
+        categories.append({"name": category.name, "confidence": category.confidence})
+    result["categories"] = categories
 
     # Detects the sentiment of the text
-    sentiment = client.analyze_sentiment(
-        request={"document": document}
-    ).document_sentiment
-    return Result(
-        data={
-            "text": text,
-            "sentiment": {"score": sentiment.score, "magnitude": sentiment.magnitude},
-        }
-    )
+    return Result(data=result)
