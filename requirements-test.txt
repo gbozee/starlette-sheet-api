@@ -2,6 +2,6 @@
 
 pytest
 pytest-asyncio
-httpx==0.16.1
+httpx==0.23.0
 ipython
 jedi==0.17.2
